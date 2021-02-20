@@ -4,14 +4,54 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.XPath;
 
 namespace CashCommodities {
-    internal static class ItemCategory
-    {
+    internal enum ItemType {
+        Accessory,
+        Cap,
+        Cape,
+        Coat,
+        Glove,
+        Longcoat,
+        Pants,
+        Ring,
+        Shield,
+        Shoes,
+        TamingMob,
+        Weapon,
+        UNKNOWN
+    }
+
+    internal static class ItemCategory {
 
         public static readonly List<int> SnCache = new List<int>();
 
-        public static int GenerateSn( bool donor, int itemId) {
+        public static ItemType GetTypeByItemID(int itemID) {
+            int type = itemID / 10000;
+            switch (type) {
+                case 101:
+                case 102:
+                case 103:
+                case 112:
+                case 114: return ItemType.Accessory;
+                case 100: return ItemType.Cap;
+                case 110: return ItemType.Cape;
+                case 104: return ItemType.Coat;
+                case 108: return ItemType.Glove;
+                case 105: return ItemType.Longcoat;
+                case 106: return ItemType.Pants;
+                case 111: return ItemType.Ring;
+                case 109: return ItemType.Shield;
+                case 107: return ItemType.Shoes;
+                case 190: return ItemType.TamingMob;
+                case 170: return ItemType.Weapon;
+            }
+
+            return ItemType.UNKNOWN;
+        }
+
+        public static int GenerateSn(bool donor, int itemId) {
             var sn = donor ? 10000000 : 20000000;
             sn += GetCategory(itemId, donor) * 100000;
 
@@ -49,7 +89,6 @@ namespace CashCommodities {
             if (type == 500) return donor ? 9 : 0; // Pet
 
             if (!donor) {
-                Debug.WriteLine("unhandled item: {0}", itemID);
                 throw new InvalidOperationException();
             }
 
@@ -57,3 +96,4 @@ namespace CashCommodities {
         }
     }
 }
+

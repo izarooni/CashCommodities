@@ -98,8 +98,10 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="ItemCategory.cs" />
+    <Compile Include="Logger.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Wz.cs" />
     <EmbeddedResource Include="Controls\CItemGroup.resx">
       <DependentUpon>CItemGroup.cs</DependentUpon>
     </EmbeddedResource>

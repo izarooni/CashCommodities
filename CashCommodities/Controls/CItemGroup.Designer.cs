@@ -25,16 +25,27 @@ namespace CashCommodities.Controls {
         /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent() {
+            System.Windows.Forms.ToolStrip toolStrip1;
             this.GridView = new System.Windows.Forms.DataGridView();
             this.TextBox = new System.Windows.Forms.TextBox();
-            this.ProgressBar = new System.Windows.Forms.ProgressBar();
+            this.InformationLabel = new System.Windows.Forms.Label();
+            this.Image = new System.Windows.Forms.DataGridViewImageColumn();
             this.Node = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ItemID = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.price = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.IsDonor = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Period = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            toolStrip1 = new System.Windows.Forms.ToolStrip();
             ((System.ComponentModel.ISupportInitialize)(this.GridView)).BeginInit();
             this.SuspendLayout();
+            // 
+            // toolStrip1
+            // 
+            toolStrip1.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
+            toolStrip1.Location = new System.Drawing.Point(0, 0);
+            toolStrip1.Name = "toolStrip1";
+            toolStrip1.Size = new System.Drawing.Size(490, 25);
+            toolStrip1.TabIndex = 5;
             // 
             // GridView
             // 
@@ -42,42 +53,57 @@ namespace CashCommodities.Controls {
             this.GridView.AllowUserToDeleteRows = false;
             this.GridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.GridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.Image,
             this.Node,
             this.ItemID,
             this.price,
             this.IsDonor,
             this.Period});
-            this.GridView.Dock = System.Windows.Forms.DockStyle.Left;
+            this.GridView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.GridView.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnEnter;
-            this.GridView.Location = new System.Drawing.Point(0, 23);
+            this.GridView.Location = new System.Drawing.Point(0, 25);
             this.GridView.Name = "GridView";
+            this.GridView.RowHeadersWidth = 5;
+            this.GridView.RowTemplate.Height = 50;
             this.GridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
-            this.GridView.Size = new System.Drawing.Size(323, 286);
+            this.GridView.Size = new System.Drawing.Size(348, 284);
             this.GridView.TabIndex = 1;
             this.GridView.CellMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.DataGridView_CellMouseDoubleClick);
             this.GridView.RowsAdded += new System.Windows.Forms.DataGridViewRowsAddedEventHandler(this.DataGridView_RowsAdded);
             // 
             // TextBox
             // 
-            this.TextBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.TextBox.Dock = System.Windows.Forms.DockStyle.Right;
             this.TextBox.Font = new System.Drawing.Font("Consolas", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.TextBox.Location = new System.Drawing.Point(323, 23);
+            this.TextBox.Location = new System.Drawing.Point(348, 25);
             this.TextBox.MaxLength = 2147483647;
             this.TextBox.Multiline = true;
             this.TextBox.Name = "TextBox";
             this.TextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.TextBox.Size = new System.Drawing.Size(167, 286);
+            this.TextBox.Size = new System.Drawing.Size(142, 284);
             this.TextBox.TabIndex = 2;
             this.TextBox.TextChanged += new System.EventHandler(this.ReplacementContent_TextChanged);
             // 
-            // ProgressBar
+            // InformationLabel
             // 
-            this.ProgressBar.Dock = System.Windows.Forms.DockStyle.Top;
-            this.ProgressBar.Location = new System.Drawing.Point(0, 0);
-            this.ProgressBar.Name = "ProgressBar";
-            this.ProgressBar.Size = new System.Drawing.Size(490, 23);
-            this.ProgressBar.Step = 1;
-            this.ProgressBar.TabIndex = 3;
+            this.InformationLabel.AutoSize = true;
+            this.InformationLabel.BackColor = System.Drawing.Color.White;
+            this.InformationLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.InformationLabel.Location = new System.Drawing.Point(3, 2);
+            this.InformationLabel.Name = "InformationLabel";
+            this.InformationLabel.Size = new System.Drawing.Size(60, 18);
+            this.InformationLabel.TabIndex = 4;
+            this.InformationLabel.Text = "ur mom";
+            this.InformationLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // Image
+            // 
+            this.Image.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.Image.HeaderText = "Image";
+            this.Image.Name = "Image";
+            this.Image.ReadOnly = true;
+            this.Image.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.Image.Width = 42;
             // 
             // Node
             // 
@@ -99,11 +125,11 @@ namespace CashCommodities.Controls {
             // 
             // price
             // 
-            this.price.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
+            this.price.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
             this.price.HeaderText = "Price";
             this.price.Name = "price";
             this.price.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.price.Width = 5;
+            this.price.Width = 37;
             // 
             // IsDonor
             // 
@@ -115,16 +141,20 @@ namespace CashCommodities.Controls {
             // 
             // Period
             // 
+            this.Period.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
             this.Period.HeaderText = "Period";
             this.Period.Name = "Period";
+            this.Period.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.Period.Width = 43;
             // 
             // CItemGroup
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.TextBox);
             this.Controls.Add(this.GridView);
-            this.Controls.Add(this.ProgressBar);
+            this.Controls.Add(this.InformationLabel);
+            this.Controls.Add(this.TextBox);
+            this.Controls.Add(toolStrip1);
             this.Margin = new System.Windows.Forms.Padding(0);
             this.Name = "CItemGroup";
             this.Size = new System.Drawing.Size(490, 309);
@@ -135,10 +165,10 @@ namespace CashCommodities.Controls {
         }
 
         #endregion
-
-        private System.Windows.Forms.ProgressBar ProgressBar;
         internal System.Windows.Forms.TextBox TextBox;
         internal DataGridView GridView;
+        private Label InformationLabel;
+        private DataGridViewImageColumn Image;
         private DataGridViewTextBoxColumn Node;
         private DataGridViewTextBoxColumn ItemID;
         private DataGridViewTextBoxColumn price;

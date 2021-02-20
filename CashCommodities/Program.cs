@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Windows.Forms;
+using CashCommodities.Properties;
 
 namespace CashCommodities {
     static class Program {
@@ -10,6 +10,8 @@ namespace CashCommodities {
         /// </summary>
         [STAThread]
         static void Main() {
+            File.Delete(Resources.FileLogger);
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());

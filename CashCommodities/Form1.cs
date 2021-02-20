@@ -2,8 +2,10 @@
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Drawing.Text;
 using System.IO;
+using System.Resources;
 using System.Windows.Forms;
 
 using CashCommodities.Controls;
@@ -16,7 +18,6 @@ using MapleLib.WzLib.WzProperties;
 namespace CashCommodities {
     public partial class Form1 : Form {
 
-        private WzFile etcFile;
         private WzImage commodityImg;
 
         private int largestNodeValue;
@@ -37,8 +38,10 @@ namespace CashCommodities {
             DonorViewer.SuspendLayout();
 
             foreach (var img in imgs) {
+                var itemID = img.GetFromPath("ItemId").GetInt();
                 var onSale = img.GetFromPath("OnSale")?.GetInt() == 1;
                 var donor = img.GetFromPath("isDonor")?.GetInt() > 0;
+
                 var snImg = img.GetFromPath("SN");
                 if (snImg != null) {
                     ItemCategory.SnCache.Add(snImg.GetInt());
@@ -49,9 +52,11 @@ namespace CashCommodities {
                     }
                 }
 
+                var image = GetItemImage(itemID);
+
                 if (onSale) {
-                    if (donor) DonorViewer.AddItem(img);
-                    else RegularViewer.AddItem(img);
+                    if (donor) DonorViewer.AddItem(itemID, img, image);
+                    else RegularViewer.AddItem(itemID, img, image);
                 }
             }
 
@@ -59,17 +64,52 @@ namespace CashCommodities {
             DonorViewer.ResumeLayout();
         }
 
+        private Bitmap GetItemImage(int itemID) {
+            var character = Wz.Character.GetFile();
+            var item = Wz.Item.GetFile();
+            int fileType = itemID / 1000000;
+
+            if (fileType == 1 && character != null) {
+                var type = ItemCategory.GetTypeByItemID(itemID);
+                if (type == ItemType.UNKNOWN) {
+                    Logger.Log($"Couldn't figure out item type, skipping image retrieval: {itemID}");
+                    return null;
+                }
+
+                var dir = character.WzDirectory[type.ToString()];
+                WzImage img = dir[$"{itemID.ToString().PadLeft(8, '0')}.img"] as WzImage;
+                if (img == null) return null;
+
+                var icon = (img.GetFromPath("info/iconRaw") ?? img.GetFromPath("info/icon"));
+                if (icon == null) icon = img.GetFromPath("default/default");
+                return icon?.GetBitmap();
+            }
+
+            if (fileType == 5 && item != null) {
+                var dir = item.WzDirectory["Pet"];
+                WzImage img = dir[$"{itemID}.img"] as WzImage;
+                if (img == null) return null;
+
+                var icon = (img.GetFromPath("info/iconRaw") ?? img.GetFromPath("info/icon"));
+                return icon?.GetBitmap();
+            }
+
+            return null;
+        }
+
         private void LoadFromWz() {
-            var mapleVersion = WzTool.DetectMapleVersion(Resources.FileWzEtc, out var detectVersion);
+            var mapleVersion = WzTool.DetectMapleVersion("Etc.wz", out var detectVersion);
             short? nVersion = null;
-            if (WzTool.GetDecryptionSuccessRate(Resources.FileWzEtc, mapleVersion, ref nVersion) < 0.8) {
+            if (WzTool.GetDecryptionSuccessRate("Etc.wz", mapleVersion, ref nVersion) < 0.8) {
                 MessageBox.Show(Resources.ErrorWzEncryption, Resources.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            etcFile = new WzFile(Resources.FileWzEtc, mapleVersion);
-            etcFile.ParseWzFile();
 
-            commodityImg = etcFile.WzDirectory.GetImageByName("Commodity.img");
+            var etc = Wz.Etc.LoadFile("Etc", mapleVersion);
+            Wz.Character.LoadFile("Character", mapleVersion);
+            Wz.Item.LoadFile("Item", mapleVersion);
+
+            commodityImg = etc.WzDirectory.GetImageByName("Commodity.img");
             commodityImg.ParseImage();
 
             AddItems(commodityImg.WzProperties);
@@ -77,29 +117,35 @@ namespace CashCommodities {
         }
 
         private void LoadFromImg() {
-            using (Stream stream = new FileStream(Resources.FileImgEtc, FileMode.Open, FileAccess.ReadWrite)) {
-                commodityImg = new WzImage("Commodity.img", stream, WzMapleVersion.GMS);
-                commodityImg.ParseImage();
-
-                AddItems(commodityImg.WzProperties);
+            var mapleVersion = WzTool.DetectMapleVersion("Data\\Etc", "Commodity.img");
+            if (mapleVersion == -1) {
+                MessageBox.Show(Resources.ErrorWzEncryption, Resources.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
+
+            var etc = Wz.Etc.LoadFile($"Data\\Etc", (WzMapleVersion) mapleVersion);
+            Wz.Character.LoadFile($"Data\\Character", (WzMapleVersion) mapleVersion);
+            Wz.Item.LoadFile($"Data\\Item", (WzMapleVersion) mapleVersion);
+
+            commodityImg = etc.WzDirectory.GetImageByName("Commodity.img");
+            commodityImg.ParseImage();
+
+            AddItems(commodityImg.WzProperties);
         }
 
         private void ButtonLoad_Click(object sender, EventArgs e) {
-            var etcDataExists = File.Exists(Resources.FileImgEtc);
-            var etcWzExists = File.Exists(Resources.FileWzEtc);
+            var etcDataExists = Directory.Exists("Data\\Etc");
+            var etcWzExists = File.Exists("Etc.wz");
             if (!etcDataExists && !etcWzExists) {
                 MessageBox.Show(Resources.ErrorFileNotFound);
                 return;
             }
 
-            if (etcFile != null || commodityImg != null) {
-                etcFile?.Dispose();
-                etcFile = null;
-
-                commodityImg?.Dispose();
-                commodityImg = null;
-            }
+            Wz.Etc.Dispose();
+            Wz.Character.Dispose();
+            Wz.Item.Dispose();
+            commodityImg?.Dispose();
+            commodityImg = null;
 
             ClearAllData();
 
@@ -109,14 +155,16 @@ namespace CashCommodities {
                 else LoadFromWz();
             } else if (etcWzExists) LoadFromWz();
             else LoadFromImg();
-
-            Debug.WriteLine("Loaded {0} SNs", ItemCategory.SnCache.Count);
         }
 
         private void ButtonSave_Click(object sender, EventArgs e) {
-            if (etcFile != null) SaveEtcWz();
-            else if (commodityImg != null) SaveEtcData();
-            else MessageBox.Show(Resources.ErrorFileNotFound);
+            if (commodityImg == null) {
+                MessageBox.Show(Resources.ErrorMessageNothingToSave, Resources.Error);
+                return;
+            }
+
+            if (File.Exists("Etc.wz")) SaveEtcWz();
+            else SaveEtcData();
         }
 
         private void SaveEtcData() {
@@ -131,7 +179,7 @@ namespace CashCommodities {
                 try {
                     File.Delete(dialog.FileName);
                 } catch {
-                    MessageBox.Show($"Unable to delete the file located at {dialog.FileName}", "Deletion Failure", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"Unable to delete the file located at {dialog.FileName}", Resources.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
             }
@@ -140,7 +188,7 @@ namespace CashCommodities {
 
             var temp = Path.GetTempFileName();
             using (var stream = File.Create(temp)) {
-                using (var w = new WzBinaryWriter(stream, WzMapleVersion.EMS, false)) {
+                using (var w = new WzBinaryWriter(stream, commodityImg.WzFileParent.MapleVersion, false)) {
                     commodityImg.SaveImage(w);
                 }
             }
@@ -165,9 +213,8 @@ namespace CashCommodities {
             UpdateNodes();
 
             var tempFile = Path.GetTempFileName();
-            etcFile.SaveToDisk(tempFile);
-            etcFile.Dispose();
-            etcFile = null;
+            var etc = Wz.Etc.GetFile();
+            etc.SaveToDisk(tempFile);
 
             if (File.Exists(dialog.FileName)) {
                 try {
@@ -221,7 +268,7 @@ namespace CashCommodities {
                             img.ParentImage.Changed = true;
                             ((WzIntProperty) donorImg).Value = donor ? 1 : 0;
                         }
-                        
+
                         // replace period value
                         var periodImg = img.GetFromPath("Period");
                         var period = int.Parse(row.Cells[4].Value.ToString());
@@ -236,7 +283,7 @@ namespace CashCommodities {
 
                     for (var i = 0; i < replacements.Length; i++) {
                         if (!int.TryParse(replacements[i], out var itemId)) {
-                            MessageBox.Show(string.Format("Invalid ID at line {0}: {1}", i, replacements[i]));
+                            MessageBox.Show($"Invalid ID at line {i}: {replacements[i]}");
                             return;
                         }
 
@@ -263,7 +310,7 @@ namespace CashCommodities {
                             sub.AddProperty(new WzIntProperty("Priority", 99));
                             sub.AddProperty(new WzIntProperty("isDonor", isDonor ? 1 : 0));
                             sub.AddProperty(new WzIntProperty("SN", sn));
-                            Debug.WriteLine("Generated SN for item {0}: {1}. Node {2}", itemId, sn, sub.Name);
+                            Debug.WriteLine($"Generated SN for item {itemId}: {sn}. Node {sub.Name}");
                             commodityImg.AddProperty(sub);
                             sub.ParentImage.Changed = true;
                         }
@@ -273,10 +320,6 @@ namespace CashCommodities {
 
             ApplyUpdates(RegularViewer.tabControl.TabPages);
             ApplyUpdates(DonorViewer.tabControl.TabPages);
-        }
-
-        private void DonorViewer_Load(object sender, EventArgs e) {
-
         }
     }
 }

@@ -99,6 +99,15 @@ namespace CashCommodities.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to There is nothing to save..
+        /// </summary>
+        internal static string ErrorMessageNothingToSave {
+            get {
+                return ResourceManager.GetString("ErrorMessageNothingToSave", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Two possible Commodities found.
         ///Press Yes to load from Data, No to load from WZ.
         /// </summary>
@@ -127,11 +136,20 @@ namespace CashCommodities.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Data/Etc/Commodity.img.
+        ///   Looks up a localized string similar to .wz.
         /// </summary>
-        internal static string FileImgEtc {
+        internal static string FileExtensionWZ {
             get {
-                return ResourceManager.GetString("FileImgEtc", resourceCulture);
+                return ResourceManager.GetString("FileExtensionWZ", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to commodity-logger.txt.
+        /// </summary>
+        internal static string FileLogger {
+            get {
+                return ResourceManager.GetString("FileLogger", resourceCulture);
             }
         }
         
@@ -154,15 +172,6 @@ namespace CashCommodities.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Etc.wz.
-        /// </summary>
-        internal static string FileWzEtc {
-            get {
-                return ResourceManager.GetString("FileWzEtc", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap folder {
@@ -179,6 +188,15 @@ namespace CashCommodities.Properties {
             get {
                 object obj = ResourceManager.GetObject("icon", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} Items Loaded - {1} Items Replaced - {2} Items Added.
+        /// </summary>
+        internal static string InformationLabel {
+            get {
+                return ResourceManager.GetString("InformationLabel", resourceCulture);
             }
         }
         

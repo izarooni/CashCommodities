@@ -31,8 +31,8 @@ namespace CashCommodities {
             this.ButtonSave = new System.Windows.Forms.ToolStripButton();
             this.MainPage = new System.Windows.Forms.TabControl();
             this.MenuRegular = new System.Windows.Forms.TabPage();
-            this.RegularViewer = new CashCommodities.Controls.CommodityViewer();
             this.MenuDonor = new System.Windows.Forms.TabPage();
+            this.RegularViewer = new CashCommodities.Controls.CommodityViewer();
             this.DonorViewer = new CashCommodities.Controls.CommodityViewer();
             this.MenuStrip.SuspendLayout();
             this.MainPage.SuspendLayout();
@@ -95,14 +95,6 @@ namespace CashCommodities {
             this.MenuRegular.Text = "Regular";
             this.MenuRegular.UseVisualStyleBackColor = true;
             // 
-            // RegularViewer
-            // 
-            this.RegularViewer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.RegularViewer.Location = new System.Drawing.Point(5, 5);
-            this.RegularViewer.Name = "RegularViewer";
-            this.RegularViewer.Size = new System.Drawing.Size(626, 380);
-            this.RegularViewer.TabIndex = 0;
-            // 
             // MenuDonor
             // 
             this.MenuDonor.Controls.Add(this.DonorViewer);
@@ -114,6 +106,14 @@ namespace CashCommodities {
             this.MenuDonor.Text = "Donor";
             this.MenuDonor.UseVisualStyleBackColor = true;
             // 
+            // RegularViewer
+            // 
+            this.RegularViewer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.RegularViewer.Location = new System.Drawing.Point(5, 5);
+            this.RegularViewer.Name = "RegularViewer";
+            this.RegularViewer.Size = new System.Drawing.Size(626, 380);
+            this.RegularViewer.TabIndex = 0;
+            // 
             // DonorViewer
             // 
             this.DonorViewer.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -121,7 +121,6 @@ namespace CashCommodities {
             this.DonorViewer.Name = "DonorViewer";
             this.DonorViewer.Size = new System.Drawing.Size(626, 380);
             this.DonorViewer.TabIndex = 0;
-            this.DonorViewer.Load += new System.EventHandler(this.DonorViewer_Load);
             // 
             // Form1
             // 

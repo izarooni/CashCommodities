@@ -25,8 +25,7 @@ namespace CashCommodities.Controls {
             }
         }
 
-        public bool AddItem(WzImageProperty img) {
-            int itemID = img.GetFromPath("ItemId").GetInt();
+        public bool AddItem(int itemID, WzImageProperty img, Bitmap image) {
             int? price = img.GetFromPath("Price")?.GetInt();
             int donor = img.GetFromPath("isDonor")?.GetInt() ?? 0;
             int period = img.GetFromPath("Period")?.GetInt() ?? 0;
@@ -49,13 +48,13 @@ namespace CashCommodities.Controls {
                 if (category >= 1010 && category <= 1013 || category == 1032) group = facesGroup;
                 else if (category >= 1020 && category <= 1025) group = eyesGroup;
                 else {
-                    Debug.WriteLine("unhandled item {0}. Node {1}", itemID, img.Name);
+                    Logger.Log($"Couldn't figure out which tab {itemID} belongs to");
                     return false;
                 }
             }
 
             var row = new DataGridViewRow();
-            row.CreateCells(group.GridView, img.Name, itemID, price, donor, period);
+            row.CreateCells(group.GridView, image, img.Name, itemID, price, donor, period);
             row.Tag = img;
             group.GridView.Rows.Add(row);
 

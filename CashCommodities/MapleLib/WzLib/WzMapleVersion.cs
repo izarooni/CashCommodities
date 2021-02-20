@@ -19,26 +19,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace MapleLib.WzLib
-{
-    public static class WzVersionData
-    {
-        public static byte[] AESKey(this WzMapleVersion mapleVersion)
-        {
-            switch (mapleVersion)
-            {
-                case WzMapleVersion.CHIRITHY: return MapleCryptoLib.CryptoConstants.bAESKey;
+namespace MapleLib.WzLib {
+    public static class WzVersionData {
+        public static byte[] AESKey(this WzMapleVersion mapleVersion) {
+            switch (mapleVersion) {
+                case WzMapleVersion.CHIRITHY: return MapleCryptoLib.CryptoConstants.bChirithyAESKey;
+                case WzMapleVersion.SERENITY: return MapleCryptoLib.CryptoConstants.bSerenityAESKey;
                 default: return MapleCryptoLib.CryptoConstants.bMapleWZAESKey;
             }
         }
 
-        public static byte[] EncryptionKey(this WzMapleVersion mapleVersion)
-        {
-            switch (mapleVersion)
-            {
-                case WzMapleVersion.CHIRITHY: return new byte[4] { 0xC6, 0x44, 0x55, 0x89 };
-                case WzMapleVersion.GMS: return new byte[4] { 0x4D, 0x23, 0xC7, 0x2B };
-                case WzMapleVersion.EMS: return new byte[4] { 0xB9, 0x7D, 0x63, 0xE9 };
+        public static byte[] EncryptionKey(this WzMapleVersion mapleVersion) {
+            switch (mapleVersion) {
+                case WzMapleVersion.CHIRITHY: return new byte[] { 0xC6, 0x44, 0x55, 0x89 };
+                case WzMapleVersion.SERENITY: return new byte[] { 0x0A, 0x2B, 0x70, 0x24 };
+                case WzMapleVersion.GMS: return new byte[] { 0x4D, 0x23, 0xC7, 0x2B };
+                case WzMapleVersion.EMS: return new byte[] { 0xB9, 0x7D, 0x63, 0xE9 };
                 default: return new byte[4];
 
             }
@@ -46,15 +42,15 @@ namespace MapleLib.WzLib
         }
     }
 
-	public enum WzMapleVersion
-	{
+    public enum WzMapleVersion {
         CHIRITHY,
-		GMS,
-		EMS,
-		BMS,
-		CLASSIC, // used for haha01haha01's programs
+        SERENITY,
+        GMS,
+        EMS,
+        BMS,
+        CLASSIC, // used for haha01haha01's programs
 
-		GENERATE,
+        GENERATE,
         GETFROMZLZ
-	}
+    }
 }
