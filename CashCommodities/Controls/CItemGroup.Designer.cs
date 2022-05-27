@@ -119,7 +119,6 @@ namespace CashCommodities.Controls {
             this.ItemID.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
             this.ItemID.HeaderText = "Item ID";
             this.ItemID.Name = "ItemID";
-            this.ItemID.ReadOnly = true;
             this.ItemID.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             this.ItemID.Width = 47;
             // 
