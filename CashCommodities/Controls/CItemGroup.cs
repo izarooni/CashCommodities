@@ -23,12 +23,11 @@ namespace CashCommodities.Controls {
         }
 
         private void UpdateInformationLabel() {
-            int rowCount = GridView.RowCount;
-            string[] replacements = TextBox.Lines;
+            var replacements = TextBox.Lines;
 
-            int loadedCount = GridView.RowCount;
-            int replacementCount = Math.Min(loadedCount, replacements.Length);
-            int addedCount = Math.Max(0, replacements.Length - loadedCount);
+            var loadedCount = GridView.RowCount;
+            var replacementCount = Math.Min(loadedCount, replacements.Length);
+            var addedCount = Math.Max(0, replacements.Length - loadedCount);
 
             InformationLabel.Text = string.Format(Resources.InformationLabel, loadedCount, replacementCount, addedCount);
         }
@@ -42,8 +41,8 @@ namespace CashCommodities.Controls {
         }
 
         private void DataGridView_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e) {
-            if (e.ColumnIndex != 2) return;
-            DataGridViewCell cell = GridView.Rows[e.RowIndex].Cells[2];
+            if (e.ColumnIndex != 3) return;
+            DataGridViewCell cell = GridView.Rows[e.RowIndex].Cells[3];
             int nValue = (int) cell.Value;
 
             GridView.SuspendLayout();
@@ -51,7 +50,7 @@ namespace CashCommodities.Controls {
                 WzImageProperty img = (WzImageProperty) row.Tag;
                 WzImageProperty priceImg = img.GetFromPath("Price");
 
-                row.Cells[2].Value = nValue;
+                row.Cells[3].Value = nValue;
                 img.ParentImage.Changed = true;
                 if (priceImg == null) {
                     img.WzProperties.Add(new WzIntProperty("Price", nValue));

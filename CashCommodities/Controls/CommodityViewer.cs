@@ -1,15 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Runtime.Remoting.Messaging;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 using System.Windows.Forms;
-
 using MapleLib.WzLib;
 
 namespace CashCommodities.Controls {
@@ -25,14 +15,20 @@ namespace CashCommodities.Controls {
             }
         }
 
-        public bool AddItem(int itemID, WzImageProperty img, Bitmap image) {
+        public bool AddItem(int itemID, WzImageProperty img, Bitmap image, bool legacyMode) {
             int? price = img.GetFromPath("Price")?.GetInt();
             int donor = img.GetFromPath("isDonor")?.GetInt() ?? 0;
             int period = img.GetFromPath("Period")?.GetInt() ?? 0;
+            bool sale = img.GetFromPath("OnSale")?.GetInt() == 1;
+            int gender = img.GetFromPath("gender")?.GetInt() ?? 2;
+            int count = img.GetFromPath("count")?.GetInt() ?? 1;
 
             int category = (itemID / 10000);
             CItemGroup group;
-            if (category == 100) group = capsGroup;
+            if (legacyMode) {
+                group = capsGroup;
+                donor = 1;
+            } else if (category == 100) group = capsGroup;
             else if (category == 104) group = topsGroup;
             else if (category == 105) group = overallsGroup;
             else if (category == 106) group = bottomsGroup;
@@ -48,13 +44,13 @@ namespace CashCommodities.Controls {
                 if (category >= 1010 && category <= 1013 || category == 1032) group = facesGroup;
                 else if (category >= 1020 && category <= 1025) group = eyesGroup;
                 else {
-                    Logger.Log($"Couldn't figure out which tab {itemID} belongs to");
-                    return false;
+                    donor = 0;
+                    group = etcGroup;
                 }
             }
 
             var row = new DataGridViewRow();
-            row.CreateCells(group.GridView, image, img.Name, itemID, price, donor, period);
+            row.CreateCells(group.GridView, image, img.Name, itemID, price, donor, period, sale, gender, count);
             row.Tag = img;
             group.GridView.Rows.Add(row);
 

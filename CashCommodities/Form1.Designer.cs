@@ -32,6 +32,8 @@ namespace CashCommodities {
             this.MainPage = new System.Windows.Forms.TabControl();
             this.MenuRegular = new System.Windows.Forms.TabPage();
             this.MenuDonor = new System.Windows.Forms.TabPage();
+            this.CheckBoxImages = new System.Windows.Forms.CheckBox();
+            this.CheckBoxLegacy = new System.Windows.Forms.CheckBox();
             this.RegularViewer = new CashCommodities.Controls.CommodityViewer();
             this.DonorViewer = new CashCommodities.Controls.CommodityViewer();
             this.MenuStrip.SuspendLayout();
@@ -106,6 +108,26 @@ namespace CashCommodities {
             this.MenuDonor.Text = "Donor";
             this.MenuDonor.UseVisualStyleBackColor = true;
             // 
+            // CheckBoxImages
+            // 
+            this.CheckBoxImages.AutoSize = true;
+            this.CheckBoxImages.Location = new System.Drawing.Point(518, 7);
+            this.CheckBoxImages.Name = "CheckBoxImages";
+            this.CheckBoxImages.Size = new System.Drawing.Size(87, 17);
+            this.CheckBoxImages.TabIndex = 5;
+            this.CheckBoxImages.Text = "Load Images";
+            this.CheckBoxImages.UseVisualStyleBackColor = true;
+            // 
+            // CheckBoxLegacy
+            // 
+            this.CheckBoxLegacy.AutoSize = true;
+            this.CheckBoxLegacy.Location = new System.Drawing.Point(416, 7);
+            this.CheckBoxLegacy.Name = "CheckBoxLegacy";
+            this.CheckBoxLegacy.Size = new System.Drawing.Size(91, 17);
+            this.CheckBoxLegacy.TabIndex = 6;
+            this.CheckBoxLegacy.Text = "Legacy Mode";
+            this.CheckBoxLegacy.UseVisualStyleBackColor = true;
+            // 
             // RegularViewer
             // 
             this.RegularViewer.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -127,11 +149,13 @@ namespace CashCommodities {
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(644, 441);
+            this.Controls.Add(this.CheckBoxLegacy);
+            this.Controls.Add(this.CheckBoxImages);
             this.Controls.Add(this.MainPage);
             this.Controls.Add(this.MenuStrip);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
-            this.Text = "Commodity Editor";
+            this.Text = "Commodity Editor - v1.1.0";
             this.MenuStrip.ResumeLayout(false);
             this.MenuStrip.PerformLayout();
             this.MainPage.ResumeLayout(false);
@@ -151,6 +175,8 @@ namespace CashCommodities {
         private System.Windows.Forms.TabPage MenuDonor;
         private CommodityViewer RegularViewer;
         private CommodityViewer DonorViewer;
+        private System.Windows.Forms.CheckBox CheckBoxImages;
+        private System.Windows.Forms.CheckBox CheckBoxLegacy;
     }
 }
 

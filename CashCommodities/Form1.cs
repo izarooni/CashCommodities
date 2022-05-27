@@ -1,11 +1,8 @@
 ﻿using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Text;
 using System.IO;
-using System.Resources;
 using System.Windows.Forms;
 
 using CashCommodities.Controls;
@@ -44,7 +41,9 @@ namespace CashCommodities {
 
                 var snImg = img.GetFromPath("SN");
                 if (snImg != null) {
-                    ItemCategory.SnCache.Add(snImg.GetInt());
+                    var nSN = snImg.GetInt();
+                    ItemCategory.SnCache.Add(nSN);
+                    if (nSN / 10000000 == 1) donor = true;
 
                     var node = int.Parse(img.Name);
                     if (node > largestNodeValue) {
@@ -55,8 +54,8 @@ namespace CashCommodities {
                 var image = GetItemImage(itemID);
 
                 if (onSale) {
-                    if (donor) DonorViewer.AddItem(itemID, img, image);
-                    else RegularViewer.AddItem(itemID, img, image);
+                    if (donor) DonorViewer.AddItem(itemID, img, image, CheckBoxLegacy.Checked);
+                    else RegularViewer.AddItem(itemID, img, image, false);
                 }
             }
 
@@ -65,6 +64,8 @@ namespace CashCommodities {
         }
 
         private Bitmap GetItemImage(int itemID) {
+            if (!CheckBoxImages.Checked) return null;
+
             var character = Wz.Character.GetFile();
             var item = Wz.Item.GetFile();
             int fileType = itemID / 1000000;
@@ -113,7 +114,6 @@ namespace CashCommodities {
             commodityImg.ParseImage();
 
             AddItems(commodityImg.WzProperties);
-
         }
 
         private void LoadFromImg() {
@@ -123,9 +123,9 @@ namespace CashCommodities {
                 return;
             }
 
-            var etc = Wz.Etc.LoadFile($"Data\\Etc", (WzMapleVersion) mapleVersion);
-            Wz.Character.LoadFile($"Data\\Character", (WzMapleVersion) mapleVersion);
-            Wz.Item.LoadFile($"Data\\Item", (WzMapleVersion) mapleVersion);
+            var etc = Wz.Etc.LoadFile($"Data\\Etc", (WzMapleVersion)mapleVersion);
+            Wz.Character.LoadFile($"Data\\Character", (WzMapleVersion)mapleVersion);
+            Wz.Item.LoadFile($"Data\\Item", (WzMapleVersion)mapleVersion);
 
             commodityImg = etc.WzDirectory.GetImageByName("Commodity.img");
             commodityImg.ParseImage();
@@ -175,15 +175,6 @@ namespace CashCommodities {
             if (dialog.ShowDialog() != DialogResult.OK)
                 return;
 
-            if (File.Exists(dialog.FileName)) {
-                try {
-                    File.Delete(dialog.FileName);
-                } catch {
-                    MessageBox.Show($"Unable to delete the file located at {dialog.FileName}", Resources.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-            }
-
             UpdateNodes();
 
             var temp = Path.GetTempFileName();
@@ -194,6 +185,15 @@ namespace CashCommodities {
             }
             commodityImg.Dispose();
             commodityImg = null;
+
+            if (File.Exists(dialog.FileName)) {
+                try {
+                    File.Delete(dialog.FileName);
+                } catch {
+                    MessageBox.Show($"Unable to delete the file located at {dialog.FileName}", Resources.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
 
             File.Move(temp, dialog.FileName);
             dialog.Dispose();
@@ -216,10 +216,14 @@ namespace CashCommodities {
             var etc = Wz.Etc.GetFile();
             etc.SaveToDisk(tempFile);
 
+            Wz.Etc.Dispose();
+            Wz.Character.Dispose();
+            Wz.Item.Dispose();
+
             if (File.Exists(dialog.FileName)) {
                 try {
                     File.Delete(dialog.FileName);
-                } catch {
+                } catch (Exception e) {
                     MessageBox.Show($"Unable to delete the file located at {dialog.FileName}", "Deletion Failure", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
@@ -232,52 +236,97 @@ namespace CashCommodities {
         }
 
         private void UpdateNodes() {
-            void ApplyUpdates(TabControl.TabPageCollection pages) {
+            void ApplyUpdates(TabControl.TabPageCollection pages, bool isDonor) {
                 foreach (TabPage tab in pages) {
-                    var view = (CItemGroup) tab.Controls[0];
+                    var view = (CItemGroup)tab.Controls[0];
                     var table = view.GridView;
                     var replacements = view.TextBox.Lines;
 
                     for (var i = 0; i < table.RowCount; i++) {
                         var row = table.Rows[i];
-                        var img = (WzImageProperty) row.Tag;
+                        var img = (WzImageProperty)row.Tag;
 
-                        // replace price value
-                        var priceObject = row.Cells[2]?.Value;
-                        if (priceObject != null) {
-                            var priceImg = img.GetFromPath("Price");
+                        {
+                            // replace price value
+                            var priceObject = row.Cells[3]?.Value;
+                            if (priceObject != null) {
+                                var priceImg = img.GetFromPath("Price");
 
-                            // convert to string then parse as int due to edited values being a string while original, un-values are still ints
-                            var price = int.Parse(row.Cells[2].Value.ToString());
-                            if (priceImg == null && price > 0) {
-                                img.ParentImage.Changed = true;
-                                img.WzProperties.Add(new WzIntProperty("Price", price));
-                            } else if (priceImg != null && priceImg.GetInt() != price) {
-                                img.ParentImage.Changed = true;
-                                ((WzIntProperty) priceImg).Value = price;
+                                // convert to string then parse as int due to edited values being a string while original, un-values are still ints
+                                var price = int.Parse(row.Cells[3].Value.ToString());
+                                if (priceImg == null && price > 0) {
+                                    img.ParentImage.Changed = true;
+                                    img.WzProperties.Add(new WzIntProperty("Price", price));
+                                } else if (priceImg != null && priceImg.GetInt() != price) {
+                                    img.ParentImage.Changed = true;
+                                    ((WzIntProperty) priceImg).Value = price;
+                                }
                             }
                         }
 
-                        // replace donor value
-                        var donorImg = img.GetFromPath("isDonor");
-                        var donor = int.Parse(row.Cells[3].Value.ToString()) == 1;
-                        if (donorImg == null && donor) {
-                            img.ParentImage.Changed = true;
-                            img.WzProperties.Add(new WzIntProperty("isDonor", 1));
-                        } else if (donorImg != null && (donorImg.GetInt() == 1) != donor) {
-                            img.ParentImage.Changed = true;
-                            ((WzIntProperty) donorImg).Value = donor ? 1 : 0;
+                        {
+                            // replace donor value
+                            var donorImg = img.GetFromPath("isDonor");
+                            var donor = int.Parse(row.Cells[4].Value.ToString()) == 1;
+                            if (donorImg == null && donor) {
+                                img.ParentImage.Changed = true;
+                                img.WzProperties.Add(new WzIntProperty("isDonor", 1));
+                            } else if (donorImg != null && (donorImg.GetInt() == 1) != donor) {
+                                img.ParentImage.Changed = true;
+                                ((WzIntProperty) donorImg).Value = donor ? 1 : 0;
+                            }
                         }
 
-                        // replace period value
-                        var periodImg = img.GetFromPath("Period");
-                        var period = int.Parse(row.Cells[4].Value.ToString());
-                        if (periodImg == null && period > 0) {
-                            img.ParentImage.Changed = true;
-                            img.WzProperties.Add(new WzIntProperty("Period", 1));
-                        } else if (periodImg != null && periodImg.GetInt() != period) {
-                            img.ParentImage.Changed = true;
-                            ((WzIntProperty) periodImg).Value = period;
+                        {
+                            // replace period value
+                            var periodImg = img.GetFromPath("Period");
+                            var period = int.Parse(row.Cells[5].Value.ToString());
+                            if (periodImg == null && period > 0) {
+                                img.ParentImage.Changed = true;
+                                img.WzProperties.Add(new WzIntProperty("Period", 1));
+                            } else if (periodImg != null && periodImg.GetInt() != period) {
+                                img.ParentImage.Changed = true;
+                                ((WzIntProperty) periodImg).Value = period;
+                            }
+                        }
+
+                        {
+                            // replace OnSale value
+                            var saleImg = img.GetFromPath("OnSale");
+                            var sale = (bool) row.Cells[6].Value;
+                            if (saleImg == null) {
+                                img.ParentImage.Changed = true;
+                                img.WzProperties.Add(new WzIntProperty("OnSale", sale ? 1 : 0));
+                            } else if ((saleImg.GetInt() == 1) != sale) {
+                                img.ParentImage.Changed = true;
+                                ((WzIntProperty)saleImg).Value = sale ? 1 : 0;
+                            }
+                        }
+
+                        {
+                            // replace gender value
+                            var genderImg = img.GetFromPath("gender");
+                            var gender = int.Parse(row.Cells[7].Value.ToString());
+                            if (genderImg == null) {
+                                img.ParentImage.Changed = true;
+                                img.WzProperties.Add(new WzIntProperty("gender", gender));
+                            } else if (genderImg.GetInt() != gender) {
+                                img.ParentImage.Changed = true;
+                                ((WzIntProperty)genderImg).Value = gender;
+                            }
+                        }
+
+                        {
+                            // replace count value
+                            var countImg = img.GetFromPath("count");
+                            var count = int.Parse(row.Cells[8].Value.ToString());
+                            if (countImg == null) {
+                                img.ParentImage.Changed = true;
+                                img.WzProperties.Add(new WzIntProperty("count", count));
+                            } else if (countImg != null && countImg.GetInt() != count) {
+                                img.ParentImage.Changed = true;
+                                ((WzIntProperty) countImg).Value = count;
+                            }
                         }
                     }
 
@@ -290,14 +339,13 @@ namespace CashCommodities {
                         // replace existing item
                         if (i < table.RowCount) {
                             var row = table.Rows[i];
-                            var img = (WzImageProperty) row.Tag;
+                            var img = (WzImageProperty)row.Tag;
 
                             var itemIdImg = img.GetFromPath("ItemId");
                             img.ParentImage.Changed = true;
-                            ((WzIntProperty) itemIdImg).Value = itemId;
+                            ((WzIntProperty)itemIdImg).Value = itemId;
                         } else {
                             // insert new item
-                            var isDonor = MainPage.SelectedIndex == 1;
                             var sn = ItemCategory.GenerateSn(isDonor, itemId);
 
                             var sub = new WzSubProperty((++largestNodeValue).ToString());
@@ -306,7 +354,7 @@ namespace CashCommodities {
                             sub.AddProperty(new WzIntProperty("ItemId", itemId));
                             sub.AddProperty(new WzIntProperty("OnSale", 1));
                             sub.AddProperty(new WzIntProperty("Period", 90));
-                            sub.AddProperty(new WzIntProperty("Price", 1));
+                            sub.AddProperty(new WzIntProperty("Price", 4000));
                             sub.AddProperty(new WzIntProperty("Priority", 99));
                             sub.AddProperty(new WzIntProperty("isDonor", isDonor ? 1 : 0));
                             sub.AddProperty(new WzIntProperty("SN", sn));
@@ -318,8 +366,8 @@ namespace CashCommodities {
                 }
             }
 
-            ApplyUpdates(RegularViewer.tabControl.TabPages);
-            ApplyUpdates(DonorViewer.tabControl.TabPages);
+            ApplyUpdates(RegularViewer.tabControl.TabPages, false);
+            ApplyUpdates(DonorViewer.tabControl.TabPages, true);
         }
     }
 }

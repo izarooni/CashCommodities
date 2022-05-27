@@ -51,6 +51,8 @@ namespace CashCommodities.Controls {
             this.petsGroup = new CashCommodities.Controls.CItemGroup();
             this.pageMounts = new System.Windows.Forms.TabPage();
             this.mountsGroup = new CashCommodities.Controls.CItemGroup();
+            this.pageEtc = new System.Windows.Forms.TabPage();
+            this.etcGroup = new CashCommodities.Controls.CItemGroup();
             this.tabControl.SuspendLayout();
             this.pageCaps.SuspendLayout();
             this.pageFaces.SuspendLayout();
@@ -65,6 +67,7 @@ namespace CashCommodities.Controls {
             this.pageCapes.SuspendLayout();
             this.pagePets.SuspendLayout();
             this.pageMounts.SuspendLayout();
+            this.pageEtc.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControl
@@ -82,6 +85,7 @@ namespace CashCommodities.Controls {
             this.tabControl.Controls.Add(this.pageCapes);
             this.tabControl.Controls.Add(this.pagePets);
             this.tabControl.Controls.Add(this.pageMounts);
+            this.tabControl.Controls.Add(this.pageEtc);
             this.tabControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl.Location = new System.Drawing.Point(0, 0);
             this.tabControl.Name = "tabControl";
@@ -337,6 +341,26 @@ namespace CashCommodities.Controls {
             this.mountsGroup.Size = new System.Drawing.Size(555, 233);
             this.mountsGroup.TabIndex = 0;
             // 
+            // pageEtc
+            // 
+            this.pageEtc.Controls.Add(this.etcGroup);
+            this.pageEtc.Location = new System.Drawing.Point(4, 26);
+            this.pageEtc.Name = "pageEtc";
+            this.pageEtc.Padding = new System.Windows.Forms.Padding(3);
+            this.pageEtc.Size = new System.Drawing.Size(555, 233);
+            this.pageEtc.TabIndex = 13;
+            this.pageEtc.Text = "Etc";
+            this.pageEtc.UseVisualStyleBackColor = true;
+            // 
+            // etcGroup
+            // 
+            this.etcGroup.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.etcGroup.Location = new System.Drawing.Point(0,0);
+            this.etcGroup.Margin = new System.Windows.Forms.Padding(0);
+            this.etcGroup.Name = "etcGroup";
+            this.etcGroup.Size = new System.Drawing.Size(555, 233);
+            this.etcGroup.TabIndex = 0;
+            // 
             // CommodityViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -358,6 +382,7 @@ namespace CashCommodities.Controls {
             this.pageCapes.ResumeLayout(false);
             this.pagePets.ResumeLayout(false);
             this.pageMounts.ResumeLayout(false);
+            this.pageEtc.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -390,5 +415,7 @@ namespace CashCommodities.Controls {
         private CItemGroup petsGroup;
         private CItemGroup mountsGroup;
         internal System.Windows.Forms.TabControl tabControl;
+        private System.Windows.Forms.TabPage pageEtc;
+        private CItemGroup etcGroup;
     }
 }

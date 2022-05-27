@@ -51,6 +51,29 @@ namespace CashCommodities {
             return ItemType.UNKNOWN;
         }
 
+        /// <summary>
+        /// https://forum.ragezone.com/f566/leaderms-cashshop-1105138/
+        /// 
+        /// The category of each Cash Shop item is controlled by the SN node (Serial Number).
+        /// Class shows the 'HOT' 'EVENT' 'SALE', etc
+        ///
+        /// Class = tags:
+        /// 0 = NEW
+        /// 1 = SALE(discounts)
+        /// 2 = HOT(popular)
+        /// 3 = EVENT(temp items)
+        /// 4/no class = no tag) 
+        ///
+        /// SN=
+        /// First number = category(start as 1)
+        /// Third number = sub category(start as 0)
+        ///
+        /// Priority node decides how far the item is listed in the Cash Shop. The higher the value how earlier its listed.
+        /// 
+        /// </summary>
+        /// <param name="donor"></param>
+        /// <param name="itemId"></param>
+        /// <returns></returns>
         public static int GenerateSn(bool donor, int itemId) {
             var sn = donor ? 10000000 : 20000000;
             sn += GetCategory(itemId, donor) * 100000;
@@ -68,7 +91,7 @@ namespace CashCommodities {
 
         public static int GetCategory(int itemID, bool donor) {
             var type = itemID / 10000;
-
+            
             if (type == 100) return 0; // Donor.Hat and Equip.Hat
 
             if (donor && type >= 101 && type <= 103) return 1; // Donor.Acc

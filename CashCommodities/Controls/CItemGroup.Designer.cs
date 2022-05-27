@@ -35,6 +35,9 @@ namespace CashCommodities.Controls {
             this.price = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.IsDonor = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Period = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.onSale = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.gender = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.count = new System.Windows.Forms.DataGridViewTextBoxColumn();
             toolStrip1 = new System.Windows.Forms.ToolStrip();
             ((System.ComponentModel.ISupportInitialize)(this.GridView)).BeginInit();
             this.SuspendLayout();
@@ -58,7 +61,10 @@ namespace CashCommodities.Controls {
             this.ItemID,
             this.price,
             this.IsDonor,
-            this.Period});
+            this.Period,
+            this.onSale,
+            this.gender,
+            this.count});
             this.GridView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.GridView.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnEnter;
             this.GridView.Location = new System.Drawing.Point(0, 25);
@@ -146,6 +152,28 @@ namespace CashCommodities.Controls {
             this.Period.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             this.Period.Width = 43;
             // 
+            // onSale
+            // 
+            this.onSale.FalseValue = "0";
+            this.onSale.HeaderText = "Sale";
+            this.onSale.IndeterminateValue = "0";
+            this.onSale.Name = "onSale";
+            this.onSale.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.onSale.TrueValue = "1";
+            this.onSale.Width = 40;
+            // 
+            // gender
+            // 
+            this.gender.HeaderText = "Gender";
+            this.gender.Name = "gender";
+            this.gender.Width = 40;
+            // 
+            // count
+            // 
+            this.count.HeaderText = "Count";
+            this.count.Name = "count";
+            this.count.Width = 45;
+            // 
             // CItemGroup
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -173,5 +201,8 @@ namespace CashCommodities.Controls {
         private DataGridViewTextBoxColumn price;
         private DataGridViewTextBoxColumn IsDonor;
         private DataGridViewTextBoxColumn Period;
+        private DataGridViewCheckBoxColumn onSale;
+        private DataGridViewTextBoxColumn gender;
+        private DataGridViewTextBoxColumn count;
     }
 }
