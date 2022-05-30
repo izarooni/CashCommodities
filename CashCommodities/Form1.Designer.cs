@@ -31,11 +31,11 @@ namespace CashCommodities {
             this.ButtonSave = new System.Windows.Forms.ToolStripButton();
             this.MainPage = new System.Windows.Forms.TabControl();
             this.MenuRegular = new System.Windows.Forms.TabPage();
+            this.RegularViewer = new CashCommodities.Controls.CommodityViewer();
             this.MenuDonor = new System.Windows.Forms.TabPage();
+            this.DonorViewer = new CashCommodities.Controls.CommodityViewer();
             this.CheckBoxImages = new System.Windows.Forms.CheckBox();
             this.CheckBoxLegacy = new System.Windows.Forms.CheckBox();
-            this.RegularViewer = new CashCommodities.Controls.CommodityViewer();
-            this.DonorViewer = new CashCommodities.Controls.CommodityViewer();
             this.MenuStrip.SuspendLayout();
             this.MainPage.SuspendLayout();
             this.MenuRegular.SuspendLayout();
@@ -97,6 +97,14 @@ namespace CashCommodities {
             this.MenuRegular.Text = "Regular";
             this.MenuRegular.UseVisualStyleBackColor = true;
             // 
+            // RegularViewer
+            // 
+            this.RegularViewer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.RegularViewer.Location = new System.Drawing.Point(5, 5);
+            this.RegularViewer.Name = "RegularViewer";
+            this.RegularViewer.Size = new System.Drawing.Size(626, 380);
+            this.RegularViewer.TabIndex = 0;
+            // 
             // MenuDonor
             // 
             this.MenuDonor.Controls.Add(this.DonorViewer);
@@ -107,6 +115,14 @@ namespace CashCommodities {
             this.MenuDonor.TabIndex = 1;
             this.MenuDonor.Text = "Donor";
             this.MenuDonor.UseVisualStyleBackColor = true;
+            // 
+            // DonorViewer
+            // 
+            this.DonorViewer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.DonorViewer.Location = new System.Drawing.Point(5, 5);
+            this.DonorViewer.Name = "DonorViewer";
+            this.DonorViewer.Size = new System.Drawing.Size(626, 380);
+            this.DonorViewer.TabIndex = 0;
             // 
             // CheckBoxImages
             // 
@@ -128,22 +144,6 @@ namespace CashCommodities {
             this.CheckBoxLegacy.Text = "Legacy Mode";
             this.CheckBoxLegacy.UseVisualStyleBackColor = true;
             // 
-            // RegularViewer
-            // 
-            this.RegularViewer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.RegularViewer.Location = new System.Drawing.Point(5, 5);
-            this.RegularViewer.Name = "RegularViewer";
-            this.RegularViewer.Size = new System.Drawing.Size(626, 380);
-            this.RegularViewer.TabIndex = 0;
-            // 
-            // DonorViewer
-            // 
-            this.DonorViewer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.DonorViewer.Location = new System.Drawing.Point(5, 5);
-            this.DonorViewer.Name = "DonorViewer";
-            this.DonorViewer.Size = new System.Drawing.Size(626, 380);
-            this.DonorViewer.TabIndex = 0;
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -155,7 +155,7 @@ namespace CashCommodities {
             this.Controls.Add(this.MenuStrip);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
-            this.Text = "Commodity Editor - v1.1.0";
+            this.Text = "Commodity Editor 1.1.0";
             this.MenuStrip.ResumeLayout(false);
             this.MenuStrip.PerformLayout();
             this.MainPage.ResumeLayout(false);
