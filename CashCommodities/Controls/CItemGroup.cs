@@ -42,6 +42,8 @@ namespace CashCommodities.Controls {
 
         private void DataGridView_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e) {
             if (e.ColumnIndex != 3) return;
+
+            // when double clicking price, change all rows in the same column to the same value
             DataGridViewCell cell = GridView.Rows[e.RowIndex].Cells[3];
             int nValue = (int) cell.Value;
 

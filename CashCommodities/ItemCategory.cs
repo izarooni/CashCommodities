@@ -112,7 +112,7 @@ namespace CashCommodities {
             if (type == 500) return donor ? 9 : 0; // Pet
 
             if (!donor) {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException($"Unspecified item type {itemID}");
             }
 
             return 10;

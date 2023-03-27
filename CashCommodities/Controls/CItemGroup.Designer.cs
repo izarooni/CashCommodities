@@ -27,8 +27,6 @@ namespace CashCommodities.Controls {
         private void InitializeComponent() {
             System.Windows.Forms.ToolStrip toolStrip1;
             this.GridView = new System.Windows.Forms.DataGridView();
-            this.TextBox = new System.Windows.Forms.TextBox();
-            this.InformationLabel = new System.Windows.Forms.Label();
             this.Image = new System.Windows.Forms.DataGridViewImageColumn();
             this.Node = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ItemID = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -38,6 +36,9 @@ namespace CashCommodities.Controls {
             this.onSale = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.gender = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.count = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.TextBox = new System.Windows.Forms.TextBox();
+            this.InformationLabel = new System.Windows.Forms.Label();
+            this.Priority = new System.Windows.Forms.DataGridViewTextBoxColumn();
             toolStrip1 = new System.Windows.Forms.ToolStrip();
             ((System.ComponentModel.ISupportInitialize)(this.GridView)).BeginInit();
             this.SuspendLayout();
@@ -64,7 +65,8 @@ namespace CashCommodities.Controls {
             this.Period,
             this.onSale,
             this.gender,
-            this.count});
+            this.count,
+            this.Priority});
             this.GridView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.GridView.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnEnter;
             this.GridView.Location = new System.Drawing.Point(0, 25);
@@ -76,31 +78,6 @@ namespace CashCommodities.Controls {
             this.GridView.TabIndex = 1;
             this.GridView.CellMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.DataGridView_CellMouseDoubleClick);
             this.GridView.RowsAdded += new System.Windows.Forms.DataGridViewRowsAddedEventHandler(this.DataGridView_RowsAdded);
-            // 
-            // TextBox
-            // 
-            this.TextBox.Dock = System.Windows.Forms.DockStyle.Right;
-            this.TextBox.Font = new System.Drawing.Font("Consolas", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.TextBox.Location = new System.Drawing.Point(348, 25);
-            this.TextBox.MaxLength = 2147483647;
-            this.TextBox.Multiline = true;
-            this.TextBox.Name = "TextBox";
-            this.TextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.TextBox.Size = new System.Drawing.Size(142, 284);
-            this.TextBox.TabIndex = 2;
-            this.TextBox.TextChanged += new System.EventHandler(this.ReplacementContent_TextChanged);
-            // 
-            // InformationLabel
-            // 
-            this.InformationLabel.AutoSize = true;
-            this.InformationLabel.BackColor = System.Drawing.Color.White;
-            this.InformationLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.InformationLabel.Location = new System.Drawing.Point(3, 2);
-            this.InformationLabel.Name = "InformationLabel";
-            this.InformationLabel.Size = new System.Drawing.Size(60, 18);
-            this.InformationLabel.TabIndex = 4;
-            this.InformationLabel.Text = "ur mom";
-            this.InformationLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // Image
             // 
@@ -174,6 +151,36 @@ namespace CashCommodities.Controls {
             this.count.Name = "count";
             this.count.Width = 45;
             // 
+            // TextBox
+            // 
+            this.TextBox.Dock = System.Windows.Forms.DockStyle.Right;
+            this.TextBox.Font = new System.Drawing.Font("Consolas", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.TextBox.Location = new System.Drawing.Point(348, 25);
+            this.TextBox.MaxLength = 2147483647;
+            this.TextBox.Multiline = true;
+            this.TextBox.Name = "TextBox";
+            this.TextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.TextBox.Size = new System.Drawing.Size(142, 284);
+            this.TextBox.TabIndex = 2;
+            this.TextBox.TextChanged += new System.EventHandler(this.ReplacementContent_TextChanged);
+            // 
+            // InformationLabel
+            // 
+            this.InformationLabel.AutoSize = true;
+            this.InformationLabel.BackColor = System.Drawing.Color.White;
+            this.InformationLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.InformationLabel.Location = new System.Drawing.Point(3, 2);
+            this.InformationLabel.Name = "InformationLabel";
+            this.InformationLabel.Size = new System.Drawing.Size(60, 18);
+            this.InformationLabel.TabIndex = 4;
+            this.InformationLabel.Text = "ur mom";
+            this.InformationLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // Priority
+            // 
+            this.Priority.HeaderText = "Priorty";
+            this.Priority.Name = "Priority";
+            // 
             // CItemGroup
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -198,11 +205,16 @@ namespace CashCommodities.Controls {
         private DataGridViewImageColumn Image;
         private DataGridViewTextBoxColumn Node;
         private DataGridViewTextBoxColumn ItemID;
-        private DataGridViewTextBoxColumn price;
+        private DataGridViewTextBoxColumn Price;
         private DataGridViewTextBoxColumn IsDonor;
         private DataGridViewTextBoxColumn Period;
+        private DataGridViewCheckBoxColumn OnSale;
+        private DataGridViewTextBoxColumn Gender;
+        private DataGridViewTextBoxColumn Count;
+        private DataGridViewTextBoxColumn price;
         private DataGridViewCheckBoxColumn onSale;
         private DataGridViewTextBoxColumn gender;
         private DataGridViewTextBoxColumn count;
+        private DataGridViewTextBoxColumn Priority;
     }
 }

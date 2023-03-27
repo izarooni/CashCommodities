@@ -325,7 +325,25 @@ namespace CashCommodities {
                                 img.WzProperties.Add(new WzIntProperty("count", count));
                             } else if (countImg != null && countImg.GetInt() != count) {
                                 img.ParentImage.Changed = true;
-                                ((WzIntProperty) countImg).Value = count;
+                                ((WzIntProperty)countImg).Value = count;
+                            }
+                        }
+
+                        {
+                            // replace priority value
+                            var priorityImg = img.GetFromPath("Priority");
+                            var priority = int.Parse(row.Cells[9].Value.ToString());
+                            if (priorityImg == null) {
+                                img.ParentImage.Changed = true;
+                                img.WzProperties.Add(new WzIntProperty("Priority", priority));
+                            } else if (priorityImg != null) {
+                                if (priorityImg.GetInt() == priority) {
+                                    continue;
+                                } else if (priorityImg.GetInt() == 99) {
+                                    priority = 98;
+                                }
+                                img.ParentImage.Changed = true;
+                                ((WzIntProperty)priorityImg).Value = priority;
                             }
                         }
                     }
@@ -358,7 +376,10 @@ namespace CashCommodities {
                             sub.AddProperty(new WzIntProperty("Priority", 99));
                             sub.AddProperty(new WzIntProperty("isDonor", isDonor ? 1 : 0));
                             sub.AddProperty(new WzIntProperty("SN", sn));
+                            sub.AddProperty(new WzIntProperty("Priorty", 99));
+
                             Debug.WriteLine($"Generated SN for item {itemId}: {sn}. Node {sub.Name}");
+
                             commodityImg.AddProperty(sub);
                             sub.ParentImage.Changed = true;
                         }
