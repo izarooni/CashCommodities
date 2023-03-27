@@ -337,10 +337,10 @@ namespace CashCommodities {
                                 img.ParentImage.Changed = true;
                                 img.WzProperties.Add(new WzIntProperty("Priority", priority));
                             } else if (priorityImg != null) {
-                                if (priorityImg.GetInt() == priority) {
-                                    continue;
-                                } else if (priorityImg.GetInt() == 99) {
+                                if (priorityImg.GetInt() == 99) {
                                     priority = 98;
+                                } else if (priorityImg.GetInt() == priority) {
+                                    continue;
                                 }
                                 img.ParentImage.Changed = true;
                                 ((WzIntProperty)priorityImg).Value = priority;
@@ -376,7 +376,6 @@ namespace CashCommodities {
                             sub.AddProperty(new WzIntProperty("Priority", 99));
                             sub.AddProperty(new WzIntProperty("isDonor", isDonor ? 1 : 0));
                             sub.AddProperty(new WzIntProperty("SN", sn));
-                            sub.AddProperty(new WzIntProperty("Priorty", 99));
 
                             Debug.WriteLine($"Generated SN for item {itemId}: {sn}. Node {sub.Name}");
 

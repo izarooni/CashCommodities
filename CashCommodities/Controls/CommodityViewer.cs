@@ -22,6 +22,7 @@ namespace CashCommodities.Controls {
             bool sale = img.GetFromPath("OnSale")?.GetInt() == 1;
             int gender = img.GetFromPath("gender")?.GetInt() ?? 2;
             int count = img.GetFromPath("count")?.GetInt() ?? 1;
+            int priority = img.GetFromPath("Priority")?.GetInt() ?? 98;
 
             int category = (itemID / 10000);
             CItemGroup group;
@@ -50,7 +51,7 @@ namespace CashCommodities.Controls {
             }
 
             var row = new DataGridViewRow();
-            row.CreateCells(group.GridView, image, img.Name, itemID, price, donor, period, sale, gender, count);
+            row.CreateCells(group.GridView, image, img.Name, itemID, price, donor, period, sale, gender, count, priority);
             row.Tag = img;
             group.GridView.Rows.Add(row);
 
