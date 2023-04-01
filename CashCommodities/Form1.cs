@@ -34,6 +34,9 @@ namespace CashCommodities {
             RegularViewer.SuspendLayout();
             DonorViewer.SuspendLayout();
 
+            RegularViewer.ForEach(cig => cig.TextBox.Text = "");
+            DonorViewer.ForEach(cig => cig.TextBox.Text = "");
+
             foreach (var img in imgs) {
                 var itemID = img.GetFromPath("ItemId").GetInt();
                 var onSale = img.GetFromPath("OnSale")?.GetInt() == 1;
@@ -259,7 +262,7 @@ namespace CashCommodities {
                                     img.WzProperties.Add(new WzIntProperty("Price", price));
                                 } else if (priceImg != null && priceImg.GetInt() != price) {
                                     img.ParentImage.Changed = true;
-                                    ((WzIntProperty) priceImg).Value = price;
+                                    ((WzIntProperty)priceImg).Value = price;
                                 }
                             }
                         }
@@ -273,7 +276,7 @@ namespace CashCommodities {
                                 img.WzProperties.Add(new WzIntProperty("isDonor", 1));
                             } else if (donorImg != null && (donorImg.GetInt() == 1) != donor) {
                                 img.ParentImage.Changed = true;
-                                ((WzIntProperty) donorImg).Value = donor ? 1 : 0;
+                                ((WzIntProperty)donorImg).Value = donor ? 1 : 0;
                             }
                         }
 
@@ -286,14 +289,14 @@ namespace CashCommodities {
                                 img.WzProperties.Add(new WzIntProperty("Period", 1));
                             } else if (periodImg != null && periodImg.GetInt() != period) {
                                 img.ParentImage.Changed = true;
-                                ((WzIntProperty) periodImg).Value = period;
+                                ((WzIntProperty)periodImg).Value = period;
                             }
                         }
 
                         {
                             // replace OnSale value
                             var saleImg = img.GetFromPath("OnSale");
-                            var sale = (bool) row.Cells[6].Value;
+                            var sale = (bool)row.Cells[6].Value;
                             if (saleImg == null) {
                                 img.ParentImage.Changed = true;
                                 img.WzProperties.Add(new WzIntProperty("OnSale", sale ? 1 : 0));
@@ -349,8 +352,9 @@ namespace CashCommodities {
                     }
 
                     for (var i = 0; i < replacements.Length; i++) {
+                        if (replacements[i].Length == 0) continue; // blank text due to new line?
                         if (!int.TryParse(replacements[i], out var itemId)) {
-                            MessageBox.Show($"Invalid ID at line {i}: {replacements[i]}");
+                            MessageBox.Show($"Invalid ID line #{i}: {view.Name}");
                             return;
                         }
 

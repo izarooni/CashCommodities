@@ -155,6 +155,7 @@ namespace CashCommodities {
             this.Controls.Add(this.MenuStrip);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Commodity Editor 1.2.0";
             this.MenuStrip.ResumeLayout(false);
             this.MenuStrip.PerformLayout();

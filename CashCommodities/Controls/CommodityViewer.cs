@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 using MapleLib.WzLib;
 
@@ -6,6 +7,28 @@ namespace CashCommodities.Controls {
     public partial class CommodityViewer : UserControl {
         public CommodityViewer() {
             InitializeComponent();
+
+            //ForEach(cig => {
+            //    cig.TextBox.KeyUp += OnTextBoxChanged;
+            //});
+        }
+
+        public void ForEach(Action<CItemGroup> action) {
+            foreach (TabPage ctrl in tabControl.Controls) {
+                foreach (CItemGroup cig in ctrl.Controls) {
+                    action(cig);
+                }
+            }
+        }
+
+        private void OnTextBoxChanged(object sender, KeyEventArgs e) {
+            if (!(sender is TextBox text)) return;
+
+            var content = text.Text;
+
+            ForEach(cig => {
+                cig.TextBox.Text = content;
+            });
         }
 
         public void ClearData() {
@@ -28,6 +51,7 @@ namespace CashCommodities.Controls {
             CItemGroup group;
             if (legacyMode) {
                 group = capsGroup;
+
                 donor = 1;
             } else if (category == 100) group = capsGroup;
             else if (category == 104) group = topsGroup;
@@ -54,6 +78,10 @@ namespace CashCommodities.Controls {
             row.CreateCells(group.GridView, image, img.Name, itemID, price, donor, period, sale, gender, count, priority);
             row.Tag = img;
             group.GridView.Rows.Add(row);
+            foreach (var c in group.Controls) {
+                if (!(c is TextBox textBox)) continue;
+                textBox.Text += $"{itemID}\r\n";
+            }
 
             return true;
         }
