@@ -355,10 +355,10 @@ namespace CashCommodities.Controls {
             // etcGroup
             // 
             this.etcGroup.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.etcGroup.Location = new System.Drawing.Point(0,0);
+            this.etcGroup.Location = new System.Drawing.Point(3, 3);
             this.etcGroup.Margin = new System.Windows.Forms.Padding(0);
             this.etcGroup.Name = "etcGroup";
-            this.etcGroup.Size = new System.Drawing.Size(555, 233);
+            this.etcGroup.Size = new System.Drawing.Size(549, 227);
             this.etcGroup.TabIndex = 0;
             // 
             // CommodityViewer
@@ -414,8 +414,8 @@ namespace CashCommodities.Controls {
         private CItemGroup capesGroup;
         private CItemGroup petsGroup;
         private CItemGroup mountsGroup;
-        internal System.Windows.Forms.TabControl tabControl;
         private System.Windows.Forms.TabPage pageEtc;
         private CItemGroup etcGroup;
+        internal System.Windows.Forms.TabControl tabControl;
     }
 }

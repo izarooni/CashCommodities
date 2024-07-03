@@ -36,7 +36,12 @@ namespace CashCommodities {
                 if ((file = GetFile(wz)) != null) return file;
             }
 
-            if (File.Exists(filePath) || File.Exists(filePath + Resources.FileExtensionWZ)) {
+            // if .wz file extension exists, remove it
+            if (filePath.EndsWith(Resources.FileExtensionWZ)) {
+                filePath = filePath.Substring(0, filePath.Length - Resources.FileExtensionWZ.Length);
+            }
+
+            if (File.Exists(filePath + Resources.FileExtensionWZ)) {
                 file = new WzFile(filePath + Resources.FileExtensionWZ, encryption);
                 file.ParseWzFile();
             } else if (Directory.Exists(filePath)) {
