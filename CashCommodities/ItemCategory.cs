@@ -99,8 +99,8 @@ namespace CashCommodities {
             if (!donor && type == 101) return 1; // Equip.Face
             if (!donor && type == 102) return 2; // Equip.Eye
 
-            if (type == 104) return donor ? 2 : 3; // Overall
-            if (type == 105) return donor ? 3 : 4; // Top
+            if (type == 104) return donor ? 3 : 4; // Top
+            if (type == 105) return donor ? 2 : 3; // Overall
             if (type == 106) return donor ? 4 : 5; // Bottom
             if (type == 107) return donor ? 5 : 6; // Shoe
             if (type == 108) return donor ? 6 : 7; // Glove
