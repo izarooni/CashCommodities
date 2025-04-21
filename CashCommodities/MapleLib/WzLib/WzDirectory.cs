@@ -1,6 +1,6 @@
 ﻿/*  MapleLib - A general-purpose MapleStory library
  * Copyright (C) 2009, 2010, 2015 Snow and haha01haha01
-   
+
  * This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -14,466 +14,360 @@
  * You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using MapleLib.WzLib.Util;
-using System;
 
 namespace MapleLib.WzLib {
-    /// <summary>
-    /// A directory in the wz file, which may contain sub directories or wz images
-    /// </summary>
+
     public class WzDirectory : WzObject {
-        #region Fields
-        internal List<WzImage> images = new List<WzImage>();
-        internal List<WzDirectory> subDirs = new List<WzDirectory>();
-        internal WzBinaryReader reader;
-        internal uint offset = 0;
-        internal string name;
-        internal uint hash;
-        internal int size, checksum, offsetSize;
-        internal byte[] WzIv;
-        internal WzObject parent;
-        internal WzFile wzFile;
-        #endregion
+        private readonly List<WzDirectory> wzDirectories = new List<WzDirectory>();
+        private readonly List<WzImage> wzImages = new List<WzImage>();
 
-        #region Inherited Members
-        /// <summary>  
-        /// The parent of the object
-        /// </summary>
-        public override WzObject Parent { get { return parent; } internal set { parent = value; } }
-        /// <summary>
-        /// The name of the directory
-        /// </summary>
-        public override string Name { get { return name; } set { name = value; } }
-        /// <summary>
-        /// The WzObjectType of the directory
-        /// </summary>
-        public override WzObjectType ObjectType { get { return WzObjectType.Directory; } }
+        private int offsetSize;
 
-        public override /*I*/WzFile WzFileParent {
-            get { return wzFile; }
+        public WzDirectory() { }
+
+        public WzDirectory(string name) {
+            Name = name;
         }
 
-        /// <summary>
-        /// Disposes the obejct
-        /// </summary>
-        public override void Dispose() {
-            name = null;
-            reader = null;
-            foreach (WzImage img in images)
-                img.Dispose();
-            foreach (WzDirectory dir in subDirs)
-                dir.Dispose();
-            images.Clear();
-            subDirs.Clear();
-            images = null;
-            subDirs = null;
-        }
-        #endregion
+        private int BlockSize { get; set; }
+        private int Checksum { get; set; }
+        private uint FileOffset { get; set; }
+        internal byte[] AesIvKey { get; set; }
+        public WzBinaryReader WzReader { get; set; }
+        public short GameVersionHash { get; set; }
 
-        #region Custom Members
-        /// <summary>
-        /// The size of the directory in the wz file
-        /// </summary>
-        public int BlockSize { get { return size; } set { size = value; } }
-        /// <summary>
-        /// The directory's chceksum
-        /// </summary>
-        public int Checksum { get { return checksum; } set { checksum = value; } }
-        /// <summary>
-        /// The wz images contained in the directory
-        /// </summary>
-        public List<WzImage> WzImages { get { return images; } }
-        /// <summary>
-        /// The sub directories contained in the directory
-        /// </summary>
-        public List<WzDirectory> WzDirectories { get { return subDirs; } }
-        /// <summary>
-        /// Offset of the folder
-        /// </summary>
-        public uint Offset { get { return offset; } set { offset = value; } }
-        /// <summary>
-        /// Returns a WzImage or a WzDirectory with the given name
-        /// </summary>
-        /// <param name="name">The name of the img or dir to find</param>
-        /// <returns>A WzImage or WzDirectory</returns>
-        public new WzObject this[string name] {
+        public ReadOnlyCollection<WzImage> WzImages {
             get {
-                foreach (WzImage i in images)
-                    if (i.Name.ToLower() == name.ToLower())
-                        return i;
-                foreach (WzDirectory d in subDirs)
-                    if (d.Name.ToLower() == name.ToLower())
-                        return d;
-                //throw new KeyNotFoundException("No wz image or directory was found with the specified name");
+                return new ReadOnlyCollection<WzImage>(wzImages);
+            }
+        }
+        public ReadOnlyCollection<WzDirectory> WzDirectories {
+            get {
+                return new ReadOnlyCollection<WzDirectory>(wzDirectories);
+            }
+        }
+
+        public override WzObject this[string name] {
+            get {
+                foreach (var img in WzImages) {
+                    if (String.Equals(img.Name, name, StringComparison.CurrentCultureIgnoreCase)) {
+                        return img;
+                    }
+                }
+
+                foreach (var subdir in WzDirectories) {
+                    if (String.Equals(subdir.Name, name, StringComparison.CurrentCultureIgnoreCase)) {
+                        return subdir;
+                    }
+                }
                 return null;
             }
-            set {
-                if (value != null) {
-                    value.Name = name;
-                    if (value is WzDirectory)
-                        AddDirectory((WzDirectory)value);
-                    else if (value is WzImage)
-                        AddImage((WzImage)value);
-                    else
-                        throw new ArgumentException("Value must be a Directory or Image");
-                }
+        }
+
+        public override string ToString() {
+            return $"{Name} ({wzImages.Count} images, {wzDirectories.Count} directories)";
+        }
+
+        public override void Dispose() {
+            foreach (var dir in WzDirectories) {
+                dir.Dispose();
             }
+            wzDirectories.Clear();
+            foreach (var img in WzImages) {
+                img.Dispose();
+            }
+            wzImages.Clear();
         }
 
-
-
-        /// <summary>
-        /// Creates a blank WzDirectory
-        /// </summary>
-        public WzDirectory() { }
-        /// <summary>
-        /// Creates a WzDirectory with the given name
-        /// </summary>
-        /// <param name="name">The name of the directory</param>
-        public WzDirectory(string name, WzFile wzFile = null) {
-            this.name = name;
-            this.wzFile = wzFile;
-        }
-        /// <summary>
-        /// Creates a WzDirectory
-        /// </summary>
-        /// <param name="reader">The BinaryReader that is currently reading the wz file</param>
-        /// <param name="blockStart">The start of the data block</param>
-        /// <param name="parentname">The name of the directory</param>
-        /// <param name="wzFile">The parent Wz File</param>
-        internal WzDirectory(WzBinaryReader reader, string dirName, uint verHash, byte[] WzIv, WzFile wzFile) {
-            this.reader = reader;
-            name = dirName;
-            hash = verHash;
-            this.WzIv = WzIv;
-            this.wzFile = wzFile;
-        }
-
-        /// <summary>
-        /// Parses the WzDirectory
-        /// </summary>
         internal void ParseDirectory() {
-            int entryCount = reader.ReadCompressedInt();
+            int entryCount = WzReader.ReadCompressedInt();
             for (int i = 0; i < entryCount; i++) {
-                byte type = reader.ReadByte();
-                string fname = null;
-                int fsize;
-                int checksum;
-                uint offset;
+                byte type = WzReader.ReadByte();
+                string objectName = null;
 
-                long rememberPos = 0;
-                if (type == 1) //01 XX 00 00 00 00 00 OFFSET (4 bytes) 
-                {
-                    int unknown = reader.ReadInt32();
-                    reader.ReadInt16();
-                    uint offs = reader.ReadOffset();
-                    continue;
-                } else if (type == 2) {
-                    int stringOffset = reader.ReadInt32();
-                    rememberPos = reader.BaseStream.Position;
-                    reader.BaseStream.Position = reader.Header.FStart + stringOffset;
-                    type = reader.ReadByte();
-                    fname = reader.ReadString();
-                } else if (type == 3 || type == 4) {
-                    fname = reader.ReadString();
-                    rememberPos = reader.BaseStream.Position;
-                } else {
+                long position = 0;
+                switch (type) {
+                    case 1: {
+                        WzReader.ReadInt32();
+                        WzReader.ReadInt16();
+                        WzReader.ReadOffset();
+                        continue;
+                    }
+                    case 2: {
+                        int stringOffset = WzReader.ReadInt32();
+                        position = WzReader.BaseStream.Position;
+
+                        WzReader.BaseStream.Position = WzReader.WzHeader.FStart + stringOffset;
+                        type = WzReader.ReadByte();
+                        objectName = WzReader.ReadString();
+                        break;
+                    }
+                    case 3: // WzDirectory
+                    case 4: // WzImage
+                        objectName = WzReader.ReadString();
+                        position = WzReader.BaseStream.Position;
+                        break;
                 }
-                reader.BaseStream.Position = rememberPos;
-                fsize = reader.ReadCompressedInt();
-                checksum = reader.ReadCompressedInt();
-                offset = reader.ReadOffset();
+
+                WzReader.BaseStream.Position = position;
+
+                int blockSize = WzReader.ReadCompressedInt();
+                int checksum = WzReader.ReadCompressedInt();
+                uint readerOffset = WzReader.ReadOffset();
+
                 if (type == 3) {
-                    WzDirectory subDir = new WzDirectory(reader, fname, hash, WzIv, wzFile);
-                    subDir.BlockSize = fsize;
-                    subDir.Checksum = checksum;
-                    subDir.Offset = offset;
-                    subDir.Parent = this;
-                    subDirs.Add(subDir);
+                    var subdir = new WzDirectory {
+                        Name = objectName,
+                        BlockSize = blockSize,
+                        Checksum = checksum,
+                        FileOffset = readerOffset,
+                        Parent = this
+                    };
+                    subdir.GameVersionHash = GameVersionHash;
+                    subdir.AesIvKey = AesIvKey;
+                    subdir.WzReader = WzReader;
+                    subdir.WzFileParent = WzFileParent;
+                    wzDirectories.Add(subdir);
                 } else {
-                    WzImage img = new WzImage(fname, reader);
-                    img.BlockSize = fsize;
-                    img.Checksum = checksum;
-                    img.Offset = offset;
-                    img.Parent = this;
-                    images.Add(img);
+                    var img = new WzImage(objectName) {
+                        BlockSize = blockSize,
+                        Checksum = checksum,
+                        Offset = readerOffset,
+                        Parent = this,  
+                    };
+                    img.WzReader = WzReader;
+                    img.WzFileParent = WzFileParent;
+                    wzImages.Add(img);
                 }
             }
 
-            foreach (WzDirectory subdir in subDirs) {
-                reader.BaseStream.Position = subdir.offset;
+            foreach (var subdir in WzDirectories) {
+                WzReader.BaseStream.Position = subdir.FileOffset;
                 subdir.ParseDirectory();
             }
         }
 
-        internal void SaveImages(BinaryWriter wzWriter, FileStream fs) {
-            foreach (WzImage img in images) {
-                if (img.changed) {
-                    fs.Position = img.tempFileStart;
-                    byte[] buffer = new byte[img.size];
-                    fs.Read(buffer, 0, img.size);
-                    wzWriter.Write(buffer);
-                } else {
-                    img.reader.BaseStream.Position = img.tempFileStart;
-                    wzWriter.Write(img.reader.ReadBytes((int)(img.tempFileEnd - img.tempFileStart)));
-                }
-            }
-            foreach (WzDirectory dir in subDirs)
-                dir.SaveImages(wzWriter, fs);
-        }
-
-        internal int GenerateDataFile(string fileName) {
-            size = 0;
-            int entryCount = subDirs.Count + images.Count;
-            if (entryCount == 0) {
-                offsetSize = 1;
-                return (size = 0);
-            }
-            size = WzTool.GetCompressedIntLength(entryCount);
-            offsetSize = WzTool.GetCompressedIntLength(entryCount);
-
-            WzBinaryWriter imgWriter = null;
-            MemoryStream memStream = null;
-            FileStream fileWrite = new FileStream(fileName, FileMode.Append, FileAccess.Write);
-            WzImage img;
-            for (int i = 0; i < images.Count; i++) {
-                img = images[i];
-                if (img.changed) {
-                    memStream = new MemoryStream();
-                    imgWriter = new WzBinaryWriter(memStream, WzFileParent.mapleVersion, false);
-                    img.SaveImage(imgWriter);
-                    img.checksum = 0;
-                    foreach (byte b in memStream.ToArray()) {
-                        img.checksum += b;
-                    }
-                    img.tempFileStart = fileWrite.Position;
-                    fileWrite.Write(memStream.ToArray(), 0, (int)memStream.Length);
-                    img.tempFileEnd = fileWrite.Position;
-                    memStream.Dispose();
-                } else {
-                    img.tempFileStart = img.offset;
-                    img.tempFileEnd = img.offset + img.size;
-                }
-                img.UnparseImage();
-
-                int nameLen = WzTool.GetWzObjectValueLength(img.name, 4);
-                size += nameLen;
-                int imgLen = img.size;
-                size += WzTool.GetCompressedIntLength(imgLen);
-                size += imgLen;
-                size += WzTool.GetCompressedIntLength(img.Checksum);
-                size += 4;
-                offsetSize += nameLen;
-                offsetSize += WzTool.GetCompressedIntLength(imgLen);
-                offsetSize += WzTool.GetCompressedIntLength(img.Checksum);
-                offsetSize += 4;
-                if (img.changed)
-                    imgWriter.Close();
-            }
-            fileWrite.Close();
-
-            WzDirectory dir;
-            for (int i = 0; i < subDirs.Count; i++) {
-                dir = subDirs[i];
-                int nameLen = WzTool.GetWzObjectValueLength(dir.name, 3);
-                size += nameLen;
-                size += subDirs[i].GenerateDataFile(fileName);
-                size += WzTool.GetCompressedIntLength(dir.size);
-                size += WzTool.GetCompressedIntLength(dir.checksum);
-                size += 4;
-                offsetSize += nameLen;
-                offsetSize += WzTool.GetCompressedIntLength(dir.size);
-                offsetSize += WzTool.GetCompressedIntLength(dir.checksum);
-                offsetSize += 4;
-            }
-            return size;
-        }
         internal void SaveDirectory(WzBinaryWriter writer) {
-            offset = (uint)writer.BaseStream.Position;
-            int entryCount = subDirs.Count + images.Count;
+            FileOffset = (uint)writer.BaseStream.Position;
+
+            int entryCount = WzDirectories.Count + WzImages.Count;
             if (entryCount == 0) {
                 BlockSize = 0;
                 return;
             }
+
             writer.WriteCompressedInt(entryCount);
-            foreach (WzImage img in images) {
-                writer.WriteWzObjectValue(img.name, 4);
+            foreach (var img in WzImages) {
+                writer.WriteWzObjectValue(img.Name, 4);
                 writer.WriteCompressedInt(img.BlockSize);
                 writer.WriteCompressedInt(img.Checksum);
                 writer.WriteOffset(img.Offset);
             }
-            foreach (WzDirectory dir in subDirs) {
-                writer.WriteWzObjectValue(dir.name, 3);
+
+            foreach (var dir in WzDirectories) {
+                writer.WriteWzObjectValue(dir.Name, 3);
                 writer.WriteCompressedInt(dir.BlockSize);
                 writer.WriteCompressedInt(dir.Checksum);
-                writer.WriteOffset(dir.Offset);
+                writer.WriteOffset(dir.FileOffset);
             }
-            foreach (WzDirectory dir in subDirs)
-                if (dir.BlockSize > 0)
+
+            foreach (var dir in WzDirectories) {
+                if (dir.BlockSize > 0) {
                     dir.SaveDirectory(writer);
-                else
+                } else {
                     writer.Write((byte)0);
+                }
+            }
         }
+
+        internal void SaveImages(WzBinaryWriter writer, FileStream targetFileStream) {
+            foreach (var img in WzImages) {
+                if (img.Changed) {
+                    targetFileStream.Position = img.TempFileStart;
+                    byte[] buffer = new byte[img.BlockSize];
+                    targetFileStream.Read(buffer, 0, img.BlockSize);
+                    writer.Write(buffer);
+                } else {
+                    img.WzReader.BaseStream.Position = img.TempFileStart;
+                    writer.Write(img.WzReader.ReadBytes((int)(img.TempFileEnd - img.TempFileStart)));
+                }
+            }
+            foreach (var dir in WzDirectories) {
+                dir.SaveImages(writer, targetFileStream);
+            }
+        }
+
+        internal int GenerateDataFile(string fileName, FileStream fileStream) {
+            BlockSize = 0;
+
+            int entryCount = WzDirectories.Count + WzImages.Count;
+            if (entryCount == 0) {
+                offsetSize = 1;
+                return BlockSize = 0;
+            }
+
+            BlockSize = WzUtil.GetCompressedIntLength(entryCount);
+            offsetSize = WzUtil.GetCompressedIntLength(entryCount);
+
+            foreach (var img in WzImages) {
+                if (img.Changed) {
+                    // write the image contents into memory
+                    using var memory = new MemoryStream();
+                    using var writer = new WzBinaryWriter(memory, WzFileParent.Encryption);
+                    img.WriteImage(writer);
+
+                    // calculate the checksum
+                    img.Checksum = 0;
+                    foreach (byte b in memory.ToArray()) {
+                        img.Checksum += b;
+                    }
+
+                    // write the memory into the file
+                    img.TempFileStart = fileStream.Position;
+                    fileStream.Write(memory.ToArray(), 0, (int)memory.Length);
+                    img.TempFileEnd = fileStream.Position;
+                } else {
+                    img.TempFileStart = img.Offset;
+                    img.TempFileEnd = img.Offset + img.BlockSize;
+                }
+
+                int nameLen = WzUtil.GetWzObjectValueLength(img.Name, 4);
+                BlockSize += nameLen;
+                int imgLen = img.BlockSize;
+
+                BlockSize += WzUtil.GetCompressedIntLength(imgLen);
+                BlockSize += imgLen;
+                BlockSize += WzUtil.GetCompressedIntLength(img.Checksum);
+                BlockSize += 4;
+
+                offsetSize += nameLen;
+                offsetSize += WzUtil.GetCompressedIntLength(imgLen);
+                offsetSize += WzUtil.GetCompressedIntLength(img.Checksum);
+                offsetSize += 4;
+            }
+
+            foreach (var subdir in WzDirectories) {
+                int nameLen = WzUtil.GetWzObjectValueLength(subdir.Name, 3);
+                BlockSize += nameLen;
+                BlockSize += subdir.GenerateDataFile(fileName, fileStream);
+                BlockSize += WzUtil.GetCompressedIntLength(subdir.BlockSize);
+                BlockSize += WzUtil.GetCompressedIntLength(subdir.Checksum);
+                BlockSize += 4;
+
+                offsetSize += nameLen;
+                offsetSize += WzUtil.GetCompressedIntLength(subdir.BlockSize);
+                offsetSize += WzUtil.GetCompressedIntLength(subdir.Checksum);
+                offsetSize += 4;
+            }
+            return BlockSize;
+        }
+
         internal uint GetOffsets(uint curOffset) {
-            offset = curOffset;
+            FileOffset = curOffset;
             curOffset += (uint)offsetSize;
-            foreach (WzDirectory dir in subDirs) {
+            foreach (var dir in WzDirectories) {
                 curOffset = dir.GetOffsets(curOffset);
             }
             return curOffset;
         }
+
         internal uint GetImgOffsets(uint curOffset) {
-            foreach (WzImage img in images) {
+            foreach (var img in WzImages) {
                 img.Offset = curOffset;
                 curOffset += (uint)img.BlockSize;
             }
-            foreach (WzDirectory dir in subDirs) {
+
+            foreach (var dir in WzDirectories) {
                 curOffset = dir.GetImgOffsets(curOffset);
             }
             return curOffset;
         }
-        internal void ExportXml(StreamWriter writer, bool oneFile, int level, bool isDirectory) {
-            if (oneFile) {
-                if (isDirectory) {
-                    writer.WriteLine(XmlUtil.Indentation(level) + XmlUtil.OpenNamedTag("WzDirectory", name, true));
-                }
-                foreach (WzDirectory subDir in WzDirectories) {
-                    subDir.ExportXml(writer, oneFile, level + 1, isDirectory);
-                }
-                foreach (WzImage subImg in WzImages) {
-                    subImg.ExportXml(writer, oneFile, level + 1);
-                }
-                if (isDirectory) {
-                    writer.WriteLine(XmlUtil.Indentation(level) + XmlUtil.CloseTag("WzDirectory"));
-                }
-            }
-        }
-        /// <summary>
-        /// Parses the wz images
-        /// </summary>
+
         public void ParseImages() {
-            foreach (WzImage img in images) {
-                if (reader.BaseStream.Position != img.Offset) {
-                    reader.BaseStream.Position = img.Offset;
+            foreach (var img in WzImages) {
+                if (WzReader.BaseStream.Position != img.Offset) {
+                    WzReader.BaseStream.Position = img.Offset;
                 }
                 img.ParseImage();
             }
-            foreach (WzDirectory subdir in subDirs) {
-                if (reader.BaseStream.Position != subdir.Offset) {
-                    reader.BaseStream.Position = subdir.Offset;
+
+            foreach (var subdir in WzDirectories) {
+                if (WzReader.BaseStream.Position != subdir.FileOffset) {
+                    WzReader.BaseStream.Position = subdir.FileOffset;
                 }
                 subdir.ParseImages();
             }
         }
 
-        internal void SetHash(uint newHash) {
-            hash = newHash;
-            foreach (WzDirectory dir in subDirs)
+        internal void SetHash(short newHash) {
+            GameVersionHash = newHash;
+            foreach (var dir in WzDirectories) {
                 dir.SetHash(newHash);
-        }
-
-        /// <summary>
-        /// Adds a WzImage to the list of wz images
-        /// </summary>
-        /// <param name="img">The WzImage to add</param>
-        public void AddImage(WzImage img) {
-            images.Add(img);
-            img.Parent = this;
-        }
-        /// <summary>
-        /// Adds a WzDirectory to the list of sub directories
-        /// </summary>
-        /// <param name="dir">The WzDirectory to add</param>
-        public void AddDirectory(WzDirectory dir) {
-            subDirs.Add(dir);
-            dir.wzFile = wzFile;
-            dir.Parent = this;
-        }
-        /// <summary>
-        /// Clears the list of images
-        /// </summary>
-        public void ClearImages() {
-            foreach (WzImage img in images) img.Parent = null;
-            images.Clear();
-        }
-        /// <summary>
-        /// Clears the list of sub directories
-        /// </summary>
-        public void ClearDirectories() {
-            foreach (WzDirectory dir in subDirs) dir.Parent = null;
-            subDirs.Clear();
-        }
-        /// <summary>
-        /// Gets an image in the list of images by it's name
-        /// </summary>
-        /// <param name="name">The name of the image</param>
-        /// <returns>The wz image that has the specified name or null if none was found</returns>
-        public WzImage GetImageByName(string name) {
-            foreach (WzImage wzI in images)
-                if (wzI.Name.ToLower() == name.ToLower())
-                    return wzI;
-            return null;
-        }
-        /// <summary>
-        /// Gets a sub directory in the list of directories by it's name
-        /// </summary>
-        /// <param name="name">The name of the directory</param>
-        /// <returns>The wz directory that has the specified name or null if none was found</returns>
-        public WzDirectory GetDirectoryByName(string name) {
-            foreach (WzDirectory dir in subDirs)
-                if (dir.Name.ToLower() == name.ToLower())
-                    return dir;
-            return null;
-        }
-        /// <summary>
-        /// Gets all child images of a WzDirectory
-        /// </summary>
-        /// <returns></returns>
-        public List<WzImage> GetChildImages() {
-            List<WzImage> imgFiles = new List<WzImage>();
-            imgFiles.AddRange(images);
-            foreach (WzDirectory subDir in subDirs) {
-                imgFiles.AddRange(subDir.GetChildImages());
             }
-            return imgFiles;
-        }
-        /// <summary>
-        /// Removes an image from the list
-        /// </summary>
-        /// <param name="image">The image to remove</param>
-        public void RemoveImage(WzImage image) {
-            images.Remove(image);
-            image.Parent = null;
-        }
-        /// <summary>
-        /// Removes a sub directory from the list
-        /// </summary>
-        /// <param name="name">The sub directory to remove</param>
-        public void RemoveDirectory(WzDirectory dir) {
-            subDirs.Remove(dir);
-            dir.Parent = null;
         }
 
-        public WzDirectory DeepClone() {
-            WzDirectory result = (WzDirectory)MemberwiseClone();
-            result.WzDirectories.Clear();
-            result.WzImages.Clear();
-            foreach (WzDirectory dir in WzDirectories)
-                result.WzDirectories.Add(dir.DeepClone());
-            foreach (WzImage img in WzImages)
-                result.WzImages.Add(img.DeepClone());
-            return result;
+        public void AddImage(WzImage img) {
+            img.Parent = this;
+            img.WzFileParent = WzFileParent;
+            wzImages.Add(img);
+        }
+
+        public void AddDirectory(WzDirectory dir) {
+            dir.Parent = this;
+            dir.WzFileParent = WzFileParent;
+            wzDirectories.Add(dir);
+        }
+
+        public void ClearImages() {
+            foreach (var img in WzImages) {
+                img.Parent = null;
+            }
+            wzImages.Clear();
+        }
+
+        public void ClearDirectories() {
+            foreach (var dir in WzDirectories) {
+                dir.Parent = null;
+            }
+            wzDirectories.Clear();
+        }
+
+        public List<WzImage> GetAllImages() {
+            var imgs = new List<WzImage>();
+            imgs.AddRange(WzImages);
+            foreach (var subDir in WzDirectories) {
+                imgs.AddRange(subDir.GetAllImages());
+            }
+            return imgs;
+        }
+
+        public void RemoveImage(WzImage img) {
+            if (wzImages.Remove(img)) {
+                img.Parent = null;
+                img.ParentImage = null;
+                img.WzFileParent = null;
+            }
+        }
+
+        public void RemoveDirectory(WzDirectory dir) {
+            if (wzDirectories.Remove(dir)) {
+                dir.Parent = null;
+                dir.WzFileParent = null;
+            }
         }
 
         public int CountImages() {
-            int result = images.Count;
-            foreach (WzDirectory subdir in WzDirectories)
-                result += subdir.CountImages();
-            return result;
+            int count = WzImages.Count;
+            foreach (var subdir in WzDirectories) {
+                count += subdir.CountImages();
+            }
+            return count;
         }
-        #endregion
 
         public override void Remove() {
             ((WzDirectory)Parent).RemoveDirectory(this);

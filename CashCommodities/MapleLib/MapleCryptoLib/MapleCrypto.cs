@@ -1,6 +1,6 @@
 ﻿/*  MapleLib - A general-purpose MapleStory library
  * Copyright (C) 2009, 2010, 2015 Snow and haha01haha01
-   
+
  * This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -23,7 +23,6 @@ namespace MapleLib.MapleCryptoLib
 	/// </summary>
 	public class MapleCrypto
 	{
-		#region Properties
 		/// <summary>
 		/// (private) IV used in the packet encryption
 		/// </summary>
@@ -42,9 +41,7 @@ namespace MapleLib.MapleCryptoLib
 			get { return _IV; }
 			set { _IV = value; }
 		}
-		#endregion
 
-		#region Methods
 		/// <summary>
 		/// Creates a new MapleCrypto class
 		/// </summary>
@@ -52,8 +49,8 @@ namespace MapleLib.MapleCryptoLib
 		/// <param name="mapleVersion">Version of MapleStory</param>
 		public MapleCrypto(byte[] IV, short mapleVersion)
 		{
-			this._IV = IV;
-			this._mapleVersion = mapleVersion;
+			_IV = IV;
+			_mapleVersion = mapleVersion;
 		}
 
 		/// <summary>
@@ -224,7 +221,5 @@ namespace MapleLib.MapleCryptoLib
 			}
 			return ret;
 		}
-		#endregion
-
 	}
 }

@@ -1,6 +1,6 @@
 ﻿/*  MapleLib - A general-purpose MapleStory library
  * Copyright (C) 2009, 2010, 2015 Snow and haha01haha01
-   
+
  * This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -18,72 +18,34 @@ using System;
 using System.Drawing;
 using MapleLib.WzLib.WzProperties;
 
-namespace MapleLib.WzLib
-{
-	/// <summary>
-	/// An abstract class for wz objects
-	/// </summary>
-	public abstract class WzObject : IDisposable
-	{
-        private object tag = null;
-        private object tag2 = null;
-        private object tag3 = null;
+namespace MapleLib.WzLib {
 
-		public abstract void Dispose();
+    /// <summary>
+    /// An abstract class for wz objects
+    /// </summary>
+    public abstract class WzObject : IDisposable {
 
-		/// <summary>
-		/// The name of the object
-		/// </summary>
-		public abstract string Name { get; set; }
-		/// <summary>
-		/// The WzObjectType of the object
-		/// </summary>
-		public abstract WzObjectType ObjectType { get; }
-		/// <summary>
-		/// Returns the parent object
-		/// </summary>
-		public abstract WzObject Parent { get; internal set; }
-        /// <summary>
-        /// Returns the parent WZ File
-        /// </summary>
-        public abstract WzFile WzFileParent { get; }
+        public abstract void Dispose();
 
-        public WzObject this[string name]
-        {
-            get
-            {
-                if (this is WzFile)
-                {
-                    return ((WzFile)this)[name];
-                } 
-                else if (this is WzDirectory)
-                {
-                    return ((WzDirectory)this)[name];
-                }
-                else if (this is WzImage)
-                {
-                    return ((WzImage)this)[name];
-                }
-                else if (this is WzImageProperty)
-                {
-                    return ((WzImageProperty)this)[name];
-                }
-                else
-                {
-                    throw new NotImplementedException();
-                }
-            }
+        public string Name {
+            get;
+            set;
         }
 
-        public string FullPath
-        {
-            get
-            {
-                if (this is WzFile) return ((WzFile)this).WzDirectory.Name;
-                string result = this.Name;
-                WzObject currObj = this;
-                while (currObj.Parent != null)
-                {
+        public WzObject Parent { get; set; }
+
+        public WzFile WzFileParent { get; set; }
+
+        public abstract WzObject this[string name] { get; }
+
+        public string FullPath {
+            get {
+                if (this is WzFile) {
+                    return ((WzFile)this).WzDirectory.Name;
+                }
+                string result = Name;
+                var currObj = this;
+                while (currObj.Parent != null) {
                     currObj = currObj.Parent;
                     result = currObj.Name + @"\" + result;
                 }
@@ -91,85 +53,63 @@ namespace MapleLib.WzLib
             }
         }
 
-        /// <summary>
-        /// Used in HaCreator to save already parsed images
-        /// </summary>
-        public virtual object HCTag
-        {
-            get { return tag; }
-            set { tag = value; }
-        }
+        public WzObject GetChildFromPath(string path) {
+            string[] seperatedPath = path.Split("/".ToCharArray());
 
-        /// <summary>
-        /// Used in HaCreator's MapSimulator to save already parsed textures
-        /// </summary>
-        public virtual object MSTag
-        {
-            get { return tag2; }
-            set { tag2 = value; }
-        }
+            WzObject currentObject = this;
+            foreach (string level in seperatedPath) {
+                if (level == "..") {
+                    currentObject = currentObject.Parent;
+                    continue;
+                }
 
-        /// <summary>
-        /// Used in HaRepacker to save WzNodes
-        /// </summary>
-        public virtual object HRTag
-        {
-            get { return tag3; }
-            set { tag3 = value; }
+                switch (currentObject) {
+                    case WzFile file:
+                        currentObject = file.WzDirectory[level];
+                        break;
+                    case WzDirectory directory:
+                        currentObject = directory[level];
+                        break;
+                    case WzImage img:
+                        currentObject = img[level];
+                        break;
+                    case WzImageProperty imgProp:
+                        currentObject = imgProp[level];
+                        break;
+                    default:
+                        return null;
+                }
+            }
+            return currentObject;
         }
-
-        public virtual object WzValue { get { return null; } }
 
         public abstract void Remove();
 
-        //Credits to BluePoop for the idea of using cast overriding
-        //2015 - That is the worst idea ever, removed and replaced with Get* methods
-        #region Cast Values
-        public virtual int GetInt()
-        {
-            throw new NotImplementedException();
+        public string GetString() {
+            return this is WzStringProperty prop ? prop.Value : throw new Exception("Not a string property");
         }
 
-        public virtual short GetShort()
-        {
-            throw new NotImplementedException();
+        public short GetShort() {
+            return this is WzShortProperty prop ? prop.Value : throw new Exception("Not a short property");
         }
 
-        public virtual long GetLong()
-        {
-            throw new NotImplementedException();
+        public int GetInt() {
+            return this is WzIntProperty prop ? prop.Value : throw new Exception("Not an int property");
         }
 
-        public virtual float GetFloat()
-        {
-            throw new NotImplementedException();
+        public long GetLong() {
+            return this is WzLongProperty prop ? prop.Value : throw new Exception("Not a long property");
         }
 
-        public virtual double GetDouble()
-        {
-            throw new NotImplementedException();
+        public float GetFloat() {
+            return this is WzFloatProperty prop ? prop.Value : throw new Exception("Not a float property");
         }
 
-        public virtual string GetString()
-        {
-            throw new NotImplementedException();
+        public double GetDouble() {
+            return this is WzDoubleProperty prop ? prop.Value : throw new Exception("Not a double property");
         }
-
-        public virtual Point GetPoint()
-        {
-            throw new NotImplementedException();
+        public virtual Bitmap GetBitmap() {
+            return this is WzCanvasWzProperty prop ? prop.PngProperty.GetPng(false) : throw new Exception("Not a canvas image");
         }
-
-        public virtual Bitmap GetBitmap()
-        {
-            throw new NotImplementedException();
-        }
-
-        public virtual byte[] GetBytes()
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
-
-	}
+    }
 }

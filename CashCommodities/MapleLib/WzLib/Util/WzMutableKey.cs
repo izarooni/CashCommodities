@@ -1,6 +1,6 @@
 ﻿/*  MapleLib - A general-purpose MapleStory library
  * Copyright (C) 2015 haha01haha01 and contributors
-   
+
  * This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -17,88 +17,74 @@
 using System;
 using System.IO;
 using System.Security.Cryptography;
-using MapleLib.MapleCryptoLib;
 
-namespace MapleLib.WzLib.Util
-{
-    public class WzMutableKey
-    {
-        public WzMutableKey(byte[] WzIv, byte[] AesKey)
-        {
-            this.iv = WzIv;
-            this.aesKey = AesKey;
-        }
+namespace MapleLib.WzLib.Util {
+    public class WzMutableKey {
 
         private static readonly int BatchSize = 4096;
-        private byte[] iv;
-        private byte[] aesKey;
+        private readonly byte[] aesIvKey;
+        private readonly byte[] aesKey;
 
         private byte[] keys;
+        public WzMutableKey(byte[] aesIvKey, byte[] aesKey) {
+            this.aesIvKey = aesIvKey;
+            this.aesKey = aesKey;
+        }
 
-        public byte this[int index]
-        {
-            get
-            {
-                if (keys == null || keys.Length <= index)
-                {
+        public byte this[int index] {
+            get {
+                if (keys == null || keys.Length <= index) {
                     EnsureKeySize(index + 1);
                 }
-                return this.keys[index];
+                return keys[index];
             }
         }
 
-        public void EnsureKeySize(int size)
-        {
-            if (keys != null && keys.Length >= size)
-            {
+        private void EnsureKeySize(int size) {
+            // array already big enough
+            if (keys != null && keys.Length >= size) {
                 return;
             }
 
             size = (int)Math.Ceiling(1.0 * size / BatchSize) * BatchSize;
             byte[] newKeys = new byte[size];
 
-            if (BitConverter.ToInt32(this.iv, 0) == 0)
-            {
-                this.keys = newKeys;
+            if (BitConverter.ToInt32(aesIvKey, 0) == 0) {
+                keys = newKeys;
                 return;
             }
 
             int startIndex = 0;
 
-            if (keys != null)
-            {
+            if (keys != null) {
                 Buffer.BlockCopy(keys, 0, newKeys, 0, keys.Length);
                 startIndex = keys.Length;
             }
 
-            Rijndael aes = Rijndael.Create();
+            using var aes = Rijndael.Create();
             aes.KeySize = 256;
             aes.BlockSize = 128;
             aes.Key = aesKey;
             aes.Mode = CipherMode.ECB;
-            MemoryStream ms = new MemoryStream(newKeys, startIndex, newKeys.Length - startIndex, true);
-            CryptoStream s = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write);
 
-            for (int i = startIndex; i < size; i += 16)
-            {
-                if (i == 0)
-                {
+            var memory = new MemoryStream(newKeys, startIndex, newKeys.Length - startIndex, true);
+            var stream = new CryptoStream(memory, aes.CreateEncryptor(), CryptoStreamMode.Write);
+
+            for (int i = startIndex; i < size; i += 16) {
+                if (i == 0) {
                     byte[] block = new byte[16];
-                    for (int j = 0; j < block.Length; j++)
-                    {
-                        block[j] = iv[j % 4];
+                    for (int j = 0; j < block.Length; j++) {
+                        block[j] = aesIvKey[j % 4];
                     }
-                    s.Write(block, 0, block.Length);
-                }
-                else
-                {
-                    s.Write(newKeys, i - 16, 16);
+                    stream.Write(block, 0, block.Length);
+                } else {
+                    stream.Write(newKeys, i - 16, 16);
                 }
             }
 
-            s.Flush();
-            ms.Close();
-            this.keys = newKeys;
+            stream.Flush();
+            memory.Close();
+            keys = newKeys;
         }
     }
 }

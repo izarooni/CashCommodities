@@ -30,7 +30,7 @@ namespace CashCommodities {
         /// <summary>
         /// Loads data given the path of a file or directory
         /// </summary>
-        public static WzFile LoadFile(this Wz wz, string filePath, WzMapleVersion encryption, bool force = true) {
+        public static WzFile LoadFile(this Wz wz, string filePath, WzEncryption encryption, bool force = true) {
             WzFile file = null;
             if (!force) {
                 if ((file = GetFile(wz)) != null) return file;
@@ -46,7 +46,10 @@ namespace CashCommodities {
                 file.ParseWzFile();
             } else if (Directory.Exists(filePath)) {
                 file = new WzFile(filePath, encryption);
-                WzDirectory dir = new WzDirectory(filePath, file);
+                var dir = new WzDirectory {
+                    Name = Path.GetFileNameWithoutExtension(filePath),
+                    WzFileParent = file
+                };
                 file.WzDirectory = dir;
                 LoadFilesImg(dir, filePath, encryption);
             }
@@ -57,19 +60,19 @@ namespace CashCommodities {
         /// <summary>
         /// Loads data using a directory type file system
         /// </summary>
-        private static void LoadFilesImg(WzDirectory dir, string directoryPath, WzMapleVersion mapleVersion) {
+        private static void LoadFilesImg(WzDirectory dir, string directoryPath, WzEncryption encryption) {
             if (!Directory.Exists(directoryPath)) return;
             string[] files = Directory.GetFiles(directoryPath);
             foreach (string file in files) {
                 FileStream stream = new FileStream(file, FileMode.Open, FileAccess.Read);
-                WzImage img = new WzImage(Path.GetFileName(file), stream, mapleVersion);
+                WzImage img = new WzImage(Path.GetFileName(file), stream, encryption);
                 dir.AddImage(img);
             }
 
             files = Directory.GetDirectories(directoryPath);
             foreach (string sub in files) {
                 WzDirectory subDir = new WzDirectory(Path.GetFileNameWithoutExtension(sub));
-                LoadFilesImg(subDir, sub, mapleVersion);
+                LoadFilesImg(subDir, sub, encryption);
                 dir.AddDirectory(subDir);
             }
         }

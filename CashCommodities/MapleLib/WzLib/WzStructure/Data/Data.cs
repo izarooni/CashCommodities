@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-using System;
 using System.Collections.Generic;
 
 namespace MapleLib.WzLib.WzStructure.Data
@@ -22,7 +21,7 @@ namespace MapleLib.WzLib.WzStructure.Data
 
     public static class Tables
     {
-        public static Dictionary<string, string> PortalTypeNames = new Dictionary<string, string>() { 
+        public static Dictionary<string, string> PortalTypeNames = new Dictionary<string, string> { 
             { "sp", "Start Point"},
             { "pi", "Invisible" },
             { "pv", "Visible" },
@@ -39,7 +38,7 @@ namespace MapleLib.WzLib.WzStructure.Data
             { "pci", "Custom Impact Spring" },
             { "pcig", "Unknown (PCIG)" }};
 
-        public static string[] BackgroundTypeNames = new string[] {
+        public static string[] BackgroundTypeNames = {
             "Regular",
             "Horizontal Copies",
             "Vertical Copies",

@@ -1,6 +1,6 @@
 ﻿/*  MapleLib - A general-purpose MapleStory library
  * Copyright (C) 2009, 2010, 2015 Snow and haha01haha01
-   
+
  * This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -15,37 +15,30 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using MapleLib.MapleCryptoLib;
 
 namespace MapleLib.WzLib.Util {
     /*
-	   TODO : Maybe WzBinaryReader/Writer should read and contain the hash (this is probably what's going to happen)
-	*/
+       TODO : Maybe WzBinaryReader/Writer should read and contain the hash (this is probably what's going to happen)
+    */
     public class WzBinaryWriter : BinaryWriter {
-        #region Properties
+
         public WzMutableKey WzKey { get; set; }
-        public uint Hash { get; set; }
+        public short GameVersionHash { get; set; }
         public Hashtable StringCache { get; set; }
         public WzHeader Header { get; set; }
-        public bool LeaveOpen { get; internal set; }
-        #endregion
 
-        #region Constructors
-        public WzBinaryWriter(Stream output, WzMapleVersion mapleVersion, bool leaveOpen)
+        public WzBinaryWriter(Stream output, WzEncryption encryption)
             : base(output) {
-            WzKey = new WzMutableKey(mapleVersion.EncryptionKey(), CryptoConstants.GetTrimmedUserKey(mapleVersion));
+            WzKey = new WzMutableKey(encryption.GetAesIvKey(), CryptoConstants.GetTrimmedUserKey(encryption));
             StringCache = new Hashtable();
-            LeaveOpen = leaveOpen;
         }
 
-        public WzBinaryWriter(Stream output, byte[] WzIv)
-        : this(output, WzMapleVersion.GMS, false) { }
-        #endregion
+        public WzBinaryWriter(Stream output, byte[] aesIvKey) : base(output) {
+            WzKey = new WzMutableKey(aesIvKey, CryptoConstants.GetTrimmedUserKey());
+        }
 
-        #region Methods
         public void WriteStringValue(string s, int withoutOffset, int withOffset) {
             if (s.Length > 4 && StringCache.ContainsKey(s)) {
                 Write((byte)withOffset);
@@ -105,7 +98,7 @@ namespace MapleLib.WzLib.Util {
                         Write(encryptedChar);
                     }
                 } else // ASCII
-                  {
+                {
                     byte mask = 0xAA;
 
                     if (value.Length > sbyte.MaxValue) // Note - no need for >= here because of 2's complement (MinValue == -(MaxValue + 1))
@@ -179,8 +172,8 @@ namespace MapleLib.WzLib.Util {
         public void WriteOffset(uint value) {
             uint encOffset = (uint)BaseStream.Position;
             encOffset = (encOffset - Header.FStart) ^ 0xFFFFFFFF;
-            encOffset *= Hash;
-            encOffset -= CryptoConstants.WZ_OffsetConstant;
+            encOffset *= (uint)GameVersionHash;
+            encOffset -= CryptoConstants.WzOffsetConstant;
             encOffset = RotateLeft(encOffset, (byte)(encOffset & 0x1F));
             uint writeOffset = encOffset ^ (value - (Header.FStart * 2));
             Write(writeOffset);
@@ -192,12 +185,5 @@ namespace MapleLib.WzLib.Util {
         private uint RotateRight(uint x, byte n) {
             return (uint)(((x) >> (n)) | ((x) << (32 - (n))));
         }
-        public override void Close() {
-            if (!LeaveOpen) {
-                base.Close();
-            }
-        }
-
-        #endregion
     }
 }

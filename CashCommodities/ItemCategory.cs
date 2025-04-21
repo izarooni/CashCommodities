@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.XPath;
+﻿using System.Collections.Generic;
 
 namespace CashCommodities {
-    internal enum ItemType {
+    internal enum EquipType {
         Accessory,
         Cap,
         Cape,
@@ -20,103 +14,88 @@ namespace CashCommodities {
         Shoes,
         TamingMob,
         Weapon,
+        PetEquip,
+        UNKNOWN
+    }
+
+    internal enum ItemType {
+        Special,
+        Pet,
+        Cash,
+        Etc,
+        Install,
+        Consume,
         UNKNOWN
     }
 
     internal static class ItemCategory {
-
-        public static readonly List<int> SnCache = new List<int>();
-
-        public static ItemType GetTypeByItemID(int itemID) {
-            int type = itemID / 10000;
+        public static ItemType GetItemTypeByItemId(int itemId) {
+            int type = itemId / 10000;
             switch (type) {
-                case 101:
-                case 102:
-                case 103:
-                case 112:
-                case 114: return ItemType.Accessory;
-                case 100: return ItemType.Cap;
-                case 110: return ItemType.Cape;
-                case 104: return ItemType.Coat;
-                case 108: return ItemType.Glove;
-                case 105: return ItemType.Longcoat;
-                case 106: return ItemType.Pants;
-                case 111: return ItemType.Ring;
-                case 109: return ItemType.Shield;
-                case 107: return ItemType.Shoes;
-                case 190: return ItemType.TamingMob;
-                case 170: return ItemType.Weapon;
+                case 900:
+                case 910:
+                case 911:
+                    return ItemType.Special;
+                case 500: // Pet
+                    return ItemType.Pet;
+                case int n when n >= 501 && n <= 599:
+                    return ItemType.Cash;
+                case int n when n >= 400 && n <= 499:
+                    return ItemType.Etc;
+                case 301:
+                case 399:
+                    return ItemType.Install;
+                case int n when n >= 200 && n <= 299:
+                    return ItemType.Consume;
             }
 
             return ItemType.UNKNOWN;
         }
 
-        /// <summary>
-        /// https://forum.ragezone.com/f566/leaderms-cashshop-1105138/
-        /// 
-        /// The category of each Cash Shop item is controlled by the SN node (Serial Number).
-        /// Class shows the 'HOT' 'EVENT' 'SALE', etc
-        ///
-        /// Class = tags:
-        /// 0 = NEW
-        /// 1 = SALE(discounts)
-        /// 2 = HOT(popular)
-        /// 3 = EVENT(temp items)
-        /// 4/no class = no tag) 
-        ///
-        /// SN=
-        /// First number = category(start as 1)
-        /// Third number = sub category(start as 0)
-        ///
-        /// Priority node decides how far the item is listed in the Cash Shop. The higher the value how earlier its listed.
-        /// 
-        /// </summary>
-        /// <param name="donor"></param>
-        /// <param name="itemId"></param>
-        /// <returns></returns>
-        public static int GenerateSn(bool donor, int itemId) {
-            var sn = donor ? 10000000 : 20000000;
-            sn += GetCategory(itemId, donor) * 100000;
-
-            var i = 1;
-            while (SnCache.Contains(sn + i)) {
-                i++;
+        public static EquipType GetEquipTypeByItemId(int itemId) {
+            int type = itemId / 10000;
+            switch (type) {
+                case 101:
+                case 102:
+                case 103:
+                case 112:
+                case 114: return EquipType.Accessory;
+                case 100: return EquipType.Cap;
+                case 110: return EquipType.Cape;
+                case 104: return EquipType.Coat;
+                case 108: return EquipType.Glove;
+                case 105: return EquipType.Longcoat;
+                case 106: return EquipType.Pants;
+                case 111: return EquipType.Ring;
+                case 109: return EquipType.Shield;
+                case 107: return EquipType.Shoes;
+                case 190: return EquipType.TamingMob;
+                case var _ when type >= 130 && type <= 170: return EquipType.Weapon;
+                case 180:
+                case 181:
+                case 182:
+                case 183: return EquipType.PetEquip;
             }
 
-            sn += i;
+            return EquipType.UNKNOWN;
+        }
 
+        private static int _incrementingSn = 0;
+        public static int IncrementingNode = 0;
+        public static readonly HashSet<int> SnCache = new HashSet<int>();
+
+        public static int GenerateSn(int mainTabIndex, int subTabIndex) {
+            var sn = 10000000 * mainTabIndex;
+            sn += subTabIndex / 100000; // sub category
+            sn += ++_incrementingSn; // UID
+            while (SnCache.Contains(sn)) {
+                sn++;
+            }
             SnCache.Add(sn);
             return sn;
         }
-
-        public static int GetCategory(int itemID, bool donor) {
-            var type = itemID / 10000;
-            
-            if (type == 100) return 0; // Donor.Hat and Equip.Hat
-
-            if (donor && type >= 101 && type <= 103) return 1; // Donor.Acc
-
-            if (!donor && type == 101) return 1; // Equip.Face
-            if (!donor && type == 102) return 2; // Equip.Eye
-
-            if (type == 104) return donor ? 3 : 4; // Top
-            if (type == 105) return donor ? 2 : 3; // Overall
-            if (type == 106) return donor ? 4 : 5; // Bottom
-            if (type == 107) return donor ? 5 : 6; // Shoe
-            if (type == 108) return donor ? 6 : 7; // Glove
-            if (type == 170) return donor ? 7 : 8; // Weapon
-
-            if (!donor && type == 111) return 9; // Equip.Ring
-
-            if (type == 110) return donor ? 8 : 11; // Cape
-            if (type == 500) return donor ? 9 : 0; // Pet
-
-            if (!donor) {
-                Debug.WriteLine($"Unspecified item type {itemID}");
-            }
-
-            return 10;
+        public static string GenerateNodeName() {
+            return (++IncrementingNode).ToString();
         }
     }
 }
-

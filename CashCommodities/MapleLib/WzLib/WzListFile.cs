@@ -1,6 +1,6 @@
 ﻿/*  MapleLib - A general-purpose MapleStory library
  * Copyright (C) 2009, 2010, 2015 Snow and haha01haha01
-   
+
  * This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -17,71 +17,55 @@
 using System.Collections.Generic;
 using System.IO;
 using MapleLib.WzLib.Util;
-using MapleLib.WzLib.WzProperties;
 
-namespace MapleLib.WzLib
-{
-	/// <summary>
-	/// A class that parses and contains the data of a wz list file
-	/// </summary>
-	public static class ListFileParser
-	{
-        /// <summary>
-		/// Parses a wz list file on the disk
-		/// </summary>
-		/// <param name="filePath">Path to the wz file</param>
-        public static List<string> ParseListFile(string filePath, WzMapleVersion version)
-        {
-            return ParseListFile(filePath, version.EncryptionKey());
-        }
+namespace MapleLib.WzLib {
+    public class WzListFile {
 
-        /// <summary>
-		/// Parses a wz list file on the disk
-		/// </summary>
-		/// <param name="filePath">Path to the wz file</param>
-        public static List<string> ParseListFile(string filePath, byte[] WzIv)
-        {
-            List<string> listEntries = new List<string>();
-            byte[] wzFileBytes = File.ReadAllBytes(filePath);
-            WzBinaryReader wzParser = new WzBinaryReader(new MemoryStream(wzFileBytes), WzIv);
-            while (wzParser.PeekChar() != -1)
-            {
-                int len = wzParser.ReadInt32();
-                char[] strChrs = new char[len];
-                for (int i = 0; i < len; i++)
-                    strChrs[i] = (char)wzParser.ReadInt16();
-                wzParser.ReadUInt16(); //encrypted null
-                string decryptedStr = wzParser.DecryptString(strChrs);
-                listEntries.Add(decryptedStr);
+        public List<string> Entries { get; } = new List<string>();
+        public WzListFile(string filePath, WzEncryption encryption) {
+
+            byte[] bytes = File.ReadAllBytes(filePath);
+            using var memory = new MemoryStream(bytes);
+            using var reader = new WzBinaryReader(memory, encryption);
+
+            while (reader.PeekChar() != -1) {
+                int stringLength = reader.ReadInt32();
+                char[] encryptedString = new char[stringLength];
+
+                for (int i = 0; i < stringLength; i++) {
+                    encryptedString[i] = (char)reader.ReadInt16();
+                }
+                reader.ReadUInt16(); // encrypted null
+                string decryptedStr = reader.DecryptString(encryptedString);
+                Entries.Add(decryptedStr);
             }
-            wzParser.Close();
-            int lastIndex= listEntries.Count - 1;
-            string lastEntry = listEntries[lastIndex];
-            listEntries[lastIndex] = lastEntry.Substring(0, lastEntry.Length - 1) + "g";
-            return listEntries;
+
+            int lastIndex = Entries.Count - 1;
+            string lastEntry = Entries[lastIndex];
+            Entries[lastIndex] = lastEntry.Substring(0, lastEntry.Length - 1) + "g";
         }
 
-        public static void SaveToDisk(string path, WzMapleVersion version, List<string> listEntries)
-        {
-            SaveToDisk(path, version.EncryptionKey(), listEntries);
+        public void SaveToDisk(string filePath, WzEncryption encryption) {
+            SaveToDisk(filePath, encryption.GetAesIvKey());
         }
 
-		public static void SaveToDisk(string path, byte[] WzIv, List<string> listEntries)
-		{
-            int lastIndex = listEntries.Count - 1;
-            string lastEntry = listEntries[lastIndex];
-            listEntries[lastIndex] = lastEntry.Substring(0, lastEntry.Length - 1) + "/";
-            WzBinaryWriter wzWriter = new WzBinaryWriter(File.Create(path), WzIv);
-            string s;
-            for (int i = 0; i < listEntries.Count; i++)
-            {
-                s = listEntries[i];
-                wzWriter.Write((int)s.Length);
-                char[] encryptedChars = wzWriter.EncryptString(s + (char)0);
-                for (int j = 0; j < encryptedChars.Length; j++)
-                    wzWriter.Write((short)encryptedChars[j]);
+        public void SaveToDisk(string filePath, byte[] aesIvKey) {
+            var lastIndex = Entries.Count - 1;
+            var lastEntry = Entries[lastIndex];
+
+            Entries[lastIndex] = lastEntry.Substring(0, lastEntry.Length - 1) + "/";
+            using var stream = File.Create(filePath);
+            using var writer = new WzBinaryWriter(stream, aesIvKey);
+            
+            foreach (string s in Entries) {
+                writer.Write(s.Length);
+                char[] encryptedChars = writer.EncryptString(s + (char)0);
+                foreach (char c in encryptedChars) {
+                    writer.Write((short)c);
+                }
             }
-            listEntries[lastIndex] = lastEntry.Substring(0, lastEntry.Length - 1) + "/";
-		}
+            Entries[lastIndex] = lastEntry.Substring(0, lastEntry.Length - 1) + "/";
+            writer.Flush();
+        }
     }
 }
