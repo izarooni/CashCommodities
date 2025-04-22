@@ -2,8 +2,6 @@
 using System.Drawing;
 using System.Windows.Forms;
 
-using MapleLib.WzLib;
-
 namespace CashCommodities.Controls {
     public partial class CommodityViewer : UserControl {
         public CommodityViewer() {
@@ -49,24 +47,29 @@ namespace CashCommodities.Controls {
             return group;
         }
 
-        public DataGridViewRow AddItem(int itemID, WzImageProperty img, Bitmap image, bool legacyMode) {
-            int? price = img.GetFromPath("Price")?.GetInt();
-            int period = img.GetFromPath("Period")?.GetInt() ?? 0;
-            bool sale = img.GetFromPath("OnSale")?.GetInt() == 1;
-            int gender = img.GetFromPath("gender")?.GetInt() ?? 2;
-            int count = img.GetFromPath("count")?.GetInt() ?? 1;
-            int priority = img.GetFromPath("Priority")?.GetInt() ?? 98;
-
-            var row = AddItem(image, img.Name, itemID, price, period, sale, gender, count, priority, legacyMode);
-            row.Tag = img;
+        public DataGridViewRow AddItem(CashItem item, Bitmap picture, bool legacyMode) {
+            var row = AddItem(
+                picture,
+                item.Image.Name,
+                item.ItemId,
+                item.Price,
+                item.Period,
+                item.OnSale,
+                item.Gender,
+                item.Count,
+                item.Priority,
+                item.Class,
+                legacyMode
+            );
+            row.Tag = item;
             return row;
         }
 
-        public DataGridViewRow AddItem(Bitmap image, string name, int itemID, int? price, int period, bool sale, int gender, int count, int priority, bool legacyMode) {
+        public DataGridViewRow AddItem(Bitmap image, string name, int itemID, int? price, int period, bool sale, int gender, int count, int priority, ClassType _class, bool legacyMode) {
             var group = GetGroupByItemID(itemID, legacyMode);
 
             var row = new DataGridViewRow();
-            row.CreateCells(group.GridView, image, name, itemID, price, period, sale, gender, count, priority);
+            row.CreateCells(group.GridView, image, name, itemID, price, period, sale, gender, count, priority, (int)_class);
             group.GridView.Rows.Add(row);
 
             return row;

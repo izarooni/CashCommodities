@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 
 using CashCommodities.Controls;
@@ -14,7 +14,7 @@ using MapleLib.WzLib.Util;
 using MapleLib.WzLib.WzProperties;
 
 namespace CashCommodities {
-    public partial class MainForm : Form {
+    public partial class MainWindow : Form {
 
         private WzImage commodityImg;
 
@@ -23,7 +23,7 @@ namespace CashCommodities {
         public bool LegacyMode => legacyMode.Checked;
         public bool LoadImages => loadImages.Checked;
 
-        public MainForm() {
+        public MainWindow() {
             InitializeComponent();
         }
 
@@ -41,32 +41,25 @@ namespace CashCommodities {
             RegularViewer.ForEachGroup(cig => cig.TextBox.Text = "");
             DonorViewer.ForEachGroup(cig => cig.TextBox.Text = "");
 
-            foreach (var img in imgs) {
-                var itemID = img.GetFromPath("ItemId").GetInt();
-                var onSale = img.GetFromPath("OnSale")?.GetInt() == 1;
-                var donor = img.GetFromPath("isDonor")?.GetInt() > 0;
+            var items = imgs.Select(i => new CashItem(i)).OrderBy(i => i.Priority).ToList();
 
-                var snImg = img.GetFromPath("SN");
-                if (snImg != null) {
-                    var nSN = snImg.GetInt();
-                    ItemCategory.SnCache.Add(nSN);
-                    if (nSN / 10000000 == 1) donor = true;
+            foreach (var item in items) {
+                ItemCategory.SnCache.Add(item.SN);
 
-                    var node = int.Parse(img.Name);
-                    if (node > LastNodeValue) {
-                        LastNodeValue = node;
-                    }
+                var node = int.Parse(item.Image.Name);
+                if (node > LastNodeValue) {
+                    LastNodeValue = node;
                 }
 
-                var image = GetItemImage(itemID);
+                var picture = GetItemPicture(item.ItemId);
 
-                if (onSale) {
-                    var view = donor ? DonorViewer : RegularViewer;
-                    var group = view.GetGroupByItemID(itemID, LegacyMode);
-                    view.AddItem(itemID, img, image, donor && LegacyMode);
+                if (item.OnSale) {
+                    var view = item.IsDonor ? DonorViewer : RegularViewer;
+                    var group = view.GetGroupByItemID(item.ItemId, LegacyMode);
+                    view.AddItem(item, picture, item.IsDonor && LegacyMode);
                     // get DataGridView from group
                     var grid = group.Controls.Find("GridView", true)[0] as DataGridView;
-                    group.Controls.Find("TextBox", true)[0].Text += $"{(grid.RowCount < 2 ? "" : "\r\n")}{itemID}";
+                    group.Controls.Find("TextBox", true)[0].Text += $"{(grid.RowCount < 2 ? "" : "\r\n")}{item.ItemId}";
                 }
             }
 
@@ -74,7 +67,7 @@ namespace CashCommodities {
             DonorViewer.ResumeLayout();
         }
 
-        private Bitmap GetItemImage(int itemID) {
+        private Bitmap GetItemPicture(int itemID) {
             if (!LoadImages) return null;
 
             var character = Wz.Character.GetFile();
@@ -134,6 +127,11 @@ namespace CashCommodities {
             try {
                 etc = Wz.Etc.LoadFile(file, mapleVersion);
                 commodityImg = etc.WzDirectory.GetImageByName("Commodity.img");
+                if (commodityImg == null) {
+                    MessageBox.Show("Unable to find Commodity.img or Category.img", Resources.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
                 commodityImg.ParseImage();
                 commodityImg.Changed = true;
             } catch (Exception ex) {
@@ -173,6 +171,10 @@ namespace CashCommodities {
             Wz.Item.LoadFile($"{file}\\Item", (WzMapleVersion)mapleVersion);
 
             commodityImg = etc.WzDirectory.GetImageByName("Commodity.img");
+            if (commodityImg == null) {
+                MessageBox.Show("Unable to find Commodity.img or Category.img", Resources.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
             commodityImg.ParseImage();
             commodityImg.Changed = true;
 
@@ -264,106 +266,93 @@ namespace CashCommodities {
                     var view = (CItemGroup)tab.Controls[0];
                     var table = view.GridView;
 
+                    WzImageProperty img;
+
                     for (var i = 0; i < table.RowCount; i++) {
                         var row = table.Rows[i];
-                        var img = (WzImageProperty)row.Tag;
+                        var item = (CashItem)row.Tag;
+                        var itemProp = item.Image as WzImageProperty;
 
-                        var image = (Bitmap)row.Cells[0].Value;
-                        var node = row.Cells[1].Value;
-                        var itemId = int.Parse(row.Cells[2].Value.ToString());
-                        var price = int.Parse(row.Cells[3].Value.ToString());
-                        var period = int.Parse(row.Cells[4].Value.ToString());
-                        var sale = (bool)row.Cells[5].Value;
-                        var gender = int.Parse(row.Cells[6].Value.ToString());
-                        var count = int.Parse(row.Cells[7].Value.ToString());
-                        var priority = int.Parse(row.Cells[8].Value.ToString());
-                        var sn = ItemCategory.GenerateSn(isDonor, itemId);
+                        var sn = ItemCategory.GenerateSn(isDonor, item.ItemId);
 
-                        if (img == null) {
+                        if (itemProp == null) {
                             // insert new item
-                            var sub = new WzSubProperty(node.ToString());
-                            sub.AddProperty(new WzIntProperty("Count", count));
-                            sub.AddProperty(new WzIntProperty("Gender", gender));
-                            sub.AddProperty(new WzIntProperty("ItemId", itemId));
-                            sub.AddProperty(new WzIntProperty("OnSale", sale ? 1 : 0));
-                            sub.AddProperty(new WzIntProperty("Period", period));
-                            sub.AddProperty(new WzIntProperty("Price", price));
-                            sub.AddProperty(new WzIntProperty("Priority", priority));
-                            sub.AddProperty(new WzIntProperty("isDonor", isDonor ? 1 : 0));
+                            var sub = new WzSubProperty(item.Node);
+                            sub.AddProperty(new WzIntProperty("Count", item.Count));
+                            sub.AddProperty(new WzIntProperty("Gender", item.Gender));
+                            sub.AddProperty(new WzIntProperty("ItemId", item.ItemId));
+                            sub.AddProperty(new WzIntProperty("OnSale", item.OnSale ? 1 : 0));
+                            sub.AddProperty(new WzIntProperty("Period", item.Period));
+                            sub.AddProperty(new WzIntProperty("Price", item.Price));
+                            sub.AddProperty(new WzIntProperty("Priority", item.Priority));
+                            sub.AddProperty(new WzIntProperty("Class", (int)item.Class));
                             sub.AddProperty(new WzIntProperty("SN", sn));
 
-                            Debug.WriteLine($"Generated SN for item {itemId}: {sn}. Node {sub.Name}");
+                            Debug.WriteLine($"Generated SN for item {item.ItemId}: {sn}. Node {sub.Name}");
 
                             commodityImg.AddProperty(sub);
                             sub.ParentImage.Changed = true;
                             continue;
                         }
 
-                        var priceImg = img.GetFromPath("Price");
-                        if (priceImg == null && price > 0) {
+                        img = itemProp.GetFromPath("isDonor");
+                        img?.Remove();
+
+                        img = itemProp.GetFromPath("Price");
+                        if (img == null && item.Price > 0) {
                             // create if not exists
-                            img.WzProperties.Add(new WzIntProperty("Price", price));
-                        } else if (priceImg != null && priceImg.GetInt() != price) {
+                            itemProp.WzProperties.Add(new WzIntProperty("Price", item.Price));
+                        } else if (img != null && img.GetInt() != item.Price) {
                             // values don't match so marked it as changed
-                            ((WzIntProperty)priceImg).Value = price;
+                            ((WzIntProperty)img).Value = item.Price;
                         }
 
-                        var donorImg = img.GetFromPath("isDonor");
-                        if (donorImg == null && isDonor) {
+                        img = itemProp.GetFromPath("Period");
+                        if (img == null && item.Period > 0) {
                             // create if not exists
-                            img.WzProperties.Add(new WzIntProperty("isDonor", 1));
-                        } else if (donorImg != null) {
-                            // force donor to 1 if it's in the donor tab
-                            ((WzIntProperty)donorImg).Value = isDonor ? 1 : 0;
+                            itemProp.WzProperties.Add(new WzIntProperty("Period", 98));
+                        } else if (img != null && img.GetInt() != item.Period) {
+                            ((WzIntProperty)img).Value = item.Period;
                         }
 
-                        var periodImg = img.GetFromPath("Period");
-                        if (periodImg == null && period > 0) {
+                        img = itemProp.GetFromPath("OnSale");
+                        if (img == null) {
                             // create if not exists
-                            img.WzProperties.Add(new WzIntProperty("Period", 98));
-                        } else if (periodImg != null && periodImg.GetInt() != period) {
-                            ((WzIntProperty)periodImg).Value = period;
-                        }
-
-                        {
-                            var saleImg = img.GetFromPath("OnSale");
-                            if (saleImg == null) {
-                                // create if not exists
-                                img.WzProperties.Add(new WzIntProperty("OnSale", sale ? 1 : 0));
-                            } else if ((saleImg.GetInt() == 1) != sale) {
-                                ((WzIntProperty)saleImg).Value = sale ? 1 : 0;
-                            }
+                            itemProp.WzProperties.Add(new WzIntProperty("OnSale", item.OnSale ? 1 : 0));
+                        } else if ((img.GetInt() == 1) != item.OnSale) {
+                            ((WzIntProperty)img).Value = item.OnSale ? 1 : 0;
                         }
 
                         // replace gender value
-                        var genderImg = img.GetFromPath("gender");
-                        if (genderImg == null) {
-                            img.WzProperties.Add(new WzIntProperty("gender", gender));
-                        } else if (genderImg.GetInt() != gender) {
-                            ((WzIntProperty)genderImg).Value = gender;
+                        img = itemProp.GetFromPath("gender");
+                        if (img == null) {
+                            itemProp.WzProperties.Add(new WzIntProperty("gender", item.Gender));
+                        } else if (img.GetInt() != item.Gender) {
+                            ((WzIntProperty)img).Value = item.Gender;
                         }
 
                         // replace count value
-                        var countImg = img.GetFromPath("count");
-                        if (countImg == null) {
-                            img.WzProperties.Add(new WzIntProperty("count", count));
-                        } else if (countImg != null && countImg.GetInt() != count) {
-                            ((WzIntProperty)countImg).Value = count;
+                        img = itemProp.GetFromPath("count");
+                        if (img == null) {
+                            itemProp.WzProperties.Add(new WzIntProperty("count", item.Count));
+                        } else if (img != null && img.GetInt() != item.Count) {
+                            ((WzIntProperty)img).Value = item.Count;
                         }
 
                         // replace priority value
-                        var priorityImg = img.GetFromPath("Priority");
-                        if (priorityImg == null) {
-                            img.WzProperties.Add(new WzIntProperty("Priority", priority));
-                        } else if (priorityImg != null) {
-                            // replace old ones with new ones which push them back on the list
-                            // keeping new content at the front
-                            if (priorityImg.GetInt() == 99) {
-                                priority = 98;
-                            } else if (priorityImg.GetInt() == priority) {
-                                continue;
-                            }
-                            ((WzIntProperty)priorityImg).Value = priority;
+                        img = itemProp.GetFromPath("Priority");
+                        if (img == null) {
+                            itemProp.WzProperties.Add(new WzIntProperty("Priority", item.Priority));
+                        } else if (img != null) {
+                            ((WzIntProperty)img).Value = item.Priority;
+                        }
+
+                        img = itemProp.GetFromPath("Class");
+                        if (img == null) {
+                            itemProp.WzProperties.Add(new WzIntProperty("Class", (int)item.Class));
+                        } else if (img is WzIntProperty classImg) {
+                            if (classImg.Value == (int)ClassType.None) img.Remove();
+                            else classImg.Value = (int)item.Class;
                         }
                     }
                 }

@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
-
-using CashCommodities.Properties;
 
 using MapleLib.WzLib;
 using MapleLib.WzLib.WzProperties;
@@ -16,8 +14,28 @@ namespace CashCommodities.Controls {
             TextBox.TextChanged += OnTextChanged;
             TextBox.PreviewKeyDown += OnPreviewKeyDown;
 
-            // synchronize scrolling between the DataGridView and the TextBox
+            Class.Width = 100;
+            Class.DataSource = Enum.GetValues(typeof(ClassType)).Cast<ClassType>().Select((type, i) => new {
+                Name = type.ToString(),
+                Value = (int)type
+            }).ToList();
+            Class.DisplayMember = "Name";
+            Class.ValueMember = "Value";
 
+            GridView.CurrentCellDirtyStateChanged += (sender, e) => {
+                if (GridView.IsCurrentCellDirty) {
+                    GridView.CommitEdit(DataGridViewDataErrorContexts.Commit);
+                }
+            };
+            GridView.CellValueChanged += (sender, e) => {
+                var row = GridView.Rows[e.RowIndex];
+                var cell = row.Cells[e.ColumnIndex];
+
+                var item = row.Tag as CashItem;
+                item.SetValue(cell.OwningColumn.Name, cell.Value);
+            };
+
+            // synchronize scrolling between the DataGridView and the TextBox
             GridView.Scroll += (sender, e) => {
                 // if textbox is focused
                 if (TextBox.Focused) return;
@@ -35,6 +53,8 @@ namespace CashCommodities.Controls {
                 }
             };
             GridView.CellClick += (sender, e) => {
+                if (e.RowIndex < 1) return;
+
                 // get row
                 var row = GridView.Rows[e.RowIndex];
                 // select corresponding line in TextBox
@@ -77,19 +97,9 @@ namespace CashCommodities.Controls {
                 GridView.SuspendLayout();
                 for (var i = line; i < line + rows; i++) {
                     // if text is empty it's probably a new row added by the user
-                    var insertRow = new DataGridViewRow();
-                    insertRow.CreateCells(GridView,
-                        null, // image
-                        ++MainForm.LastNodeValue, // node
-                        "", // itemId
-                        4000, // price
-                        90, // period
-                        true, // sale
-                        2, // gender
-                        1, // count
-                        99 // priority
-                        );
-                    GridView.Rows.Insert(i, insertRow);
+                    var item = new CashItem((++MainWindow.LastNodeValue).ToString());
+                    var row = item.CreateRow(GridView);
+                    GridView.Rows.Insert(i, row);
                 }
                 GridView.ResumeLayout();
             }
@@ -140,61 +150,31 @@ namespace CashCommodities.Controls {
         }
 
         private void OnTextChanged(object sender, EventArgs e) {
-            //var image = (Bitmap)row.Cells[0].Value;
-            //var node = row.Cells[1].Value;
-            //var itemId = int.Parse(row.Cells[2].Value.ToString());
-            //var price = int.Parse(row.Cells[3].Value.ToString());
-            //var period = int.Parse(row.Cells[4].Value.ToString());
-            //var sale = (bool)row.Cells[5].Value;
-            //var gender = int.Parse(row.Cells[6].Value.ToString());
-            //var count = int.Parse(row.Cells[7].Value.ToString());
-            //var priority = int.Parse(row.Cells[8].Value.ToString());
-
             // synchronize the text in the TextBox with the DataGridView
             GridView.SuspendLayout();
             var lines = TextBox.Lines;
             for (var i = 0; i < lines.Length; i++) {
+                CashItem item;
+
                 // synchronize existing rows with the text in the TextBox
                 if (i < GridView.RowCount) {
+                    item = GridView.Rows[i].Tag as CashItem;
+
                     if (!string.IsNullOrEmpty(lines[i])) {
                         // if the row exists, synchronize the text
+                        item.SetValue("ItemID", lines[i]);
                         GridView.Rows[i].Cells[2].Value = lines[i];
                         continue;
                     }
 
                     // itemId is also empty which assumes the row has already been added, skip
                     if (string.IsNullOrEmpty(GridView.Rows[i].Cells[2].Value.ToString())) continue;
-
-                    // if text is empty it's probably a new row added by the user
-                    var insertRow = new DataGridViewRow();
-                    insertRow.CreateCells(GridView,
-                        null, // image
-                        ++MainForm.LastNodeValue, // node
-                        "", // itemId
-                        4000, // price
-                        90, // period
-                        true, // sale
-                        2, // gender
-                        1, // count
-                        99 // priority
-                        );
-                    GridView.Rows.Insert(i, insertRow);
-                    continue;
                 }
 
-                var newRow = new DataGridViewRow();
-                newRow.CreateCells(GridView,
-                    null, // image
-                    ++MainForm.LastNodeValue, // node
-                    lines[i], // itemId
-                    4000, // price
-                    90, // period
-                    true, // sale
-                    2, // gender
-                    1, // count
-                    99 // priority
-                 );
-                GridView.Rows.Add(newRow);
+                // new rows
+                item = new CashItem((++MainWindow.LastNodeValue).ToString());
+                var insertRow = item.CreateRow(GridView);
+                GridView.Rows.Insert(i, insertRow);
             }
 
             // delete all extra rows after the last line

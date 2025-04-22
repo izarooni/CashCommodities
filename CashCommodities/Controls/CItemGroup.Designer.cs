@@ -36,6 +36,7 @@ namespace CashCommodities.Controls {
             this.Gender = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Count = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Priority = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Class = new System.Windows.Forms.DataGridViewComboBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.GridView)).BeginInit();
             this.SuspendLayout();
             // 
@@ -44,6 +45,17 @@ namespace CashCommodities.Controls {
             this.GridView.AllowUserToAddRows = false;
             this.GridView.AllowUserToDeleteRows = false;
             this.GridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.GridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.Image,
+            this.Node,
+            this.ItemID,
+            this.Price,
+            this.Period,
+            this.OnSale,
+            this.Gender,
+            this.Count,
+            this.Priority,
+            this.Class});
             this.GridView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.GridView.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnEnter;
             this.GridView.Location = new System.Drawing.Point(0, 0);
@@ -54,66 +66,6 @@ namespace CashCommodities.Controls {
             this.GridView.Size = new System.Drawing.Size(348, 309);
             this.GridView.TabIndex = 1;
             this.GridView.CellMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.DataGridView_CellMouseDoubleClick);
-            this.GridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-                this.Image,
-                this.Node,
-                this.ItemID,
-                this.Price,
-                this.Period,
-                this.OnSale,
-                this.Gender,
-                this.Count,
-                this.Priority
-            });
-
-            // Image
-            this.Image.HeaderText = "Image";
-            this.Image.Name = "Image";
-            this.Image.ReadOnly = true;
-            this.Image.Width = 50;
-
-            // Node
-            this.Node.HeaderText = "Node";
-            this.Node.Name = "Node";
-            this.Node.ReadOnly = true;
-            this.Node.Width = 50;
-
-            // ItemID
-            this.ItemID.HeaderText = "ItemID";
-            this.ItemID.Name = "ItemID";
-            this.ItemID.ReadOnly = true;
-            this.ItemID.Width = 70;
-            
-            // Price
-            this.Price.HeaderText = "Price";
-            this.Price.Name = "Price";
-            this.Price.Width = 37;
-            
-            // Period
-            this.Period.HeaderText = "Period";
-            this.Period.Name = "Period";
-            this.Period.Width = 37;
-
-            // OnSale
-            this.OnSale.HeaderText = "OnSale";
-            this.OnSale.Name = "OnSale";
-            this.OnSale.Width = 50;
-
-            // Gender
-            this.Gender.HeaderText = "Gender";
-            this.Gender.Name = "Gender";
-            this.Gender.Width = 37;
-
-            // Count
-            this.Count.HeaderText = "Count";
-            this.Count.Name = "Count";
-            this.Count.Width = 37;
-
-            // Priority
-            this.Priority.HeaderText = "Priority";
-            this.Priority.Name = "Priority";
-            this.Priority.Width = 37;
-
             // 
             // TextBox
             // 
@@ -126,6 +78,68 @@ namespace CashCommodities.Controls {
             this.TextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.TextBox.Size = new System.Drawing.Size(142, 309);
             this.TextBox.TabIndex = 2;
+            // 
+            // Image
+            // 
+            this.Image.HeaderText = "Image";
+            this.Image.Name = "Image";
+            this.Image.ReadOnly = true;
+            this.Image.Width = 50;
+            // 
+            // Node
+            // 
+            this.Node.HeaderText = "Node";
+            this.Node.Name = "Node";
+            this.Node.ReadOnly = true;
+            this.Node.Width = 50;
+            // 
+            // ItemID
+            // 
+            this.ItemID.HeaderText = "ItemId";
+            this.ItemID.Name = "ItemID";
+            this.ItemID.ReadOnly = true;
+            this.ItemID.Width = 70;
+            // 
+            // Price
+            // 
+            this.Price.HeaderText = "Price";
+            this.Price.Name = "Price";
+            this.Price.Width = 37;
+            // 
+            // Period
+            // 
+            this.Period.HeaderText = "Period";
+            this.Period.Name = "Period";
+            this.Period.Width = 37;
+            // 
+            // OnSale
+            // 
+            this.OnSale.HeaderText = "OnSale";
+            this.OnSale.Name = "OnSale";
+            this.OnSale.Width = 50;
+            // 
+            // Gender
+            // 
+            this.Gender.HeaderText = "Gender";
+            this.Gender.Name = "Gender";
+            this.Gender.Width = 37;
+            // 
+            // Count
+            // 
+            this.Count.HeaderText = "Count";
+            this.Count.Name = "Count";
+            this.Count.Width = 37;
+            // 
+            // Priority
+            // 
+            this.Priority.HeaderText = "Priority";
+            this.Priority.Name = "Priority";
+            this.Priority.Width = 37;
+            // 
+            // Class
+            // 
+            this.Class.HeaderText = "Class";
+            this.Class.Name = "Class";
             // 
             // CItemGroup
             // 
@@ -149,10 +163,11 @@ namespace CashCommodities.Controls {
         private DataGridViewTextBoxColumn Node;
         private DataGridViewTextBoxColumn ItemID;
         private DataGridViewTextBoxColumn Price;
-        private DataGridViewCheckBoxColumn OnSale;
-        private DataGridViewTextBoxColumn Count;
-        private DataGridViewTextBoxColumn Gender;
         private DataGridViewTextBoxColumn Period;
+        private DataGridViewCheckBoxColumn OnSale;
+        private DataGridViewTextBoxColumn Gender;
+        private DataGridViewTextBoxColumn Count;
         private DataGridViewTextBoxColumn Priority;
+        private DataGridViewComboBoxColumn Class;
     }
 }
