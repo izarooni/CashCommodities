@@ -28,7 +28,9 @@ namespace CashCommodities {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainWindow));
             this.MainPage = new System.Windows.Forms.TabControl();
             this.MenuRegular = new System.Windows.Forms.TabPage();
+            this.RegularViewer = new CashCommodities.Controls.CommodityViewer();
             this.MenuDonor = new System.Windows.Forms.TabPage();
+            this.DonorViewer = new CashCommodities.Controls.CommodityViewer();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.openFile = new System.Windows.Forms.ToolStripMenuItem();
@@ -38,8 +40,6 @@ namespace CashCommodities {
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.legacyMode = new System.Windows.Forms.ToolStripMenuItem();
             this.loadImages = new System.Windows.Forms.ToolStripMenuItem();
-            this.RegularViewer = new CashCommodities.Controls.CommodityViewer();
-            this.DonorViewer = new CashCommodities.Controls.CommodityViewer();
             this.MainPage.SuspendLayout();
             this.MenuRegular.SuspendLayout();
             this.MenuDonor.SuspendLayout();
@@ -69,6 +69,14 @@ namespace CashCommodities {
             this.MenuRegular.Text = "Regular";
             this.MenuRegular.UseVisualStyleBackColor = true;
             // 
+            // RegularViewer
+            // 
+            this.RegularViewer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.RegularViewer.Location = new System.Drawing.Point(5, 5);
+            this.RegularViewer.Name = "RegularViewer";
+            this.RegularViewer.Size = new System.Drawing.Size(676, 401);
+            this.RegularViewer.TabIndex = 0;
+            // 
             // MenuDonor
             // 
             this.MenuDonor.Controls.Add(this.DonorViewer);
@@ -80,8 +88,17 @@ namespace CashCommodities {
             this.MenuDonor.Text = "Donor";
             this.MenuDonor.UseVisualStyleBackColor = true;
             // 
+            // DonorViewer
+            // 
+            this.DonorViewer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.DonorViewer.Location = new System.Drawing.Point(5, 5);
+            this.DonorViewer.Name = "DonorViewer";
+            this.DonorViewer.Size = new System.Drawing.Size(676, 401);
+            this.DonorViewer.TabIndex = 0;
+            // 
             // menuStrip1
             // 
+            this.menuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripMenuItem1,
             this.toolStripMenuItem2});
@@ -106,7 +123,7 @@ namespace CashCommodities {
             // 
             this.openFile.Image = global::CashCommodities.Properties.Resources.folder;
             this.openFile.Name = "openFile";
-            this.openFile.Size = new System.Drawing.Size(139, 22);
+            this.openFile.Size = new System.Drawing.Size(143, 26);
             this.openFile.Text = "Open File";
             this.openFile.Click += new System.EventHandler(this.LoadFromWz);
             // 
@@ -114,20 +131,20 @@ namespace CashCommodities {
             // 
             this.openFolder.Image = global::CashCommodities.Properties.Resources.folder;
             this.openFolder.Name = "openFolder";
-            this.openFolder.Size = new System.Drawing.Size(139, 22);
+            this.openFolder.Size = new System.Drawing.Size(143, 26);
             this.openFolder.Text = "Open Folder";
             this.openFolder.Click += new System.EventHandler(this.LoadFromImg);
             // 
             // aToolStripMenuItem
             // 
             this.aToolStripMenuItem.Name = "aToolStripMenuItem";
-            this.aToolStripMenuItem.Size = new System.Drawing.Size(136, 6);
+            this.aToolStripMenuItem.Size = new System.Drawing.Size(140, 6);
             // 
             // saveAs
             // 
             this.saveAs.Image = global::CashCommodities.Properties.Resources.disk;
             this.saveAs.Name = "saveAs";
-            this.saveAs.Size = new System.Drawing.Size(139, 22);
+            this.saveAs.Size = new System.Drawing.Size(143, 26);
             this.saveAs.Text = "Save As";
             this.saveAs.Click += new System.EventHandler(this.ButtonSave_Click);
             // 
@@ -160,22 +177,6 @@ namespace CashCommodities {
             this.loadImages.ToolTipText = "If you to show images for each item displayed when loading cash commodities.\r\nOnl" +
     "y works when opening a file, not when adding new items.";
             // 
-            // RegularViewer
-            // 
-            this.RegularViewer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.RegularViewer.Location = new System.Drawing.Point(5, 5);
-            this.RegularViewer.Name = "RegularViewer";
-            this.RegularViewer.Size = new System.Drawing.Size(676, 401);
-            this.RegularViewer.TabIndex = 0;
-            // 
-            // DonorViewer
-            // 
-            this.DonorViewer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.DonorViewer.Location = new System.Drawing.Point(5, 5);
-            this.DonorViewer.Name = "DonorViewer";
-            this.DonorViewer.Size = new System.Drawing.Size(676, 401);
-            this.DonorViewer.TabIndex = 0;
-            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -187,7 +188,7 @@ namespace CashCommodities {
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainWindow";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
-            this.Text = "Commodity Editor v1.3";
+            this.Text = "Commodity Editor v1.3.1";
             this.MainPage.ResumeLayout(false);
             this.MenuRegular.ResumeLayout(false);
             this.MenuDonor.ResumeLayout(false);

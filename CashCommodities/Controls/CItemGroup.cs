@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -78,6 +80,8 @@ namespace CashCommodities.Controls {
             };
         }
 
+        public List<CashItem> RemoveQueue { get; set; } = new List<CashItem>();
+
         private void OnPreviewKeyDown(object sender, PreviewKeyDownEventArgs e) {
             if (string.IsNullOrEmpty(TextBox.Text)) return;
 
@@ -149,7 +153,7 @@ namespace CashCommodities.Controls {
             }
         }
 
-        private void OnTextChanged(object sender, EventArgs e) {
+        internal void OnTextChanged(object sender, EventArgs e) {
             // synchronize the text in the TextBox with the DataGridView
             GridView.SuspendLayout();
             var lines = TextBox.Lines;
@@ -178,8 +182,12 @@ namespace CashCommodities.Controls {
             }
 
             // delete all extra rows after the last line
-            while (GridView.RowCount > lines.Length) {
-                GridView.Rows.RemoveAt(GridView.RowCount - 1);
+            for (var i = GridView.RowCount - 1; i >= lines.Length; i--) {
+               var item = GridView.Rows[i].Tag as CashItem;
+                if (item != null) {
+                    RemoveQueue.Add(item);
+                }
+                GridView.Rows.RemoveAt(i);
             }
             GridView.ResumeLayout();
         }
@@ -189,6 +197,8 @@ namespace CashCommodities.Controls {
 
             GridView.ClearSelection();
             GridView.Rows.Clear();
+            TextBox.Clear();
+            RemoveQueue.Clear();
 
             ResumeLayout();
         }

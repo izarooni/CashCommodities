@@ -38,8 +38,7 @@ namespace CashCommodities {
             RegularViewer.SuspendLayout();
             DonorViewer.SuspendLayout();
 
-            RegularViewer.ForEachGroup(cig => cig.TextBox.Text = "");
-            DonorViewer.ForEachGroup(cig => cig.TextBox.Text = "");
+            ClearAllData();
 
             var items = imgs.Select(i => new CashItem(i)).OrderBy(i => i.Priority).ToList();
 
@@ -267,6 +266,10 @@ namespace CashCommodities {
                     var table = view.GridView;
 
                     WzImageProperty img;
+
+                    foreach (var item in view.RemoveQueue) {
+                        commodityImg[item.Node]?.Remove();
+                    }
 
                     for (var i = 0; i < table.RowCount; i++) {
                         var row = table.Rows[i];
