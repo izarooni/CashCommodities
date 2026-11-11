@@ -1,4 +1,8 @@
 # CashCommodities
+
+> [!WARNING]
+> **This project is deprecated and no longer maintained.** See [WzBrowser](https://github.com/izarooni/WzBrowser) instead.
+
 A tool for editing the in-game Cash Shop (Etc.wz)
 
 Place the program in your MapleStory folder and click the folder icon to load your Cash Shop.
